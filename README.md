@@ -103,11 +103,11 @@ The Exam Seat Management System is designed to automate the process of allocatin
 - ✅ Implemented Topic management views (index, create, edit, show)
 - ✅ Implemented Bloom's Taxonomy management views (index, create, edit, show)
 - ✅ Implemented Question management views (index, create, edit, show)
+- ✅ Implemented Blueprint management views (index, create, edit, show)
 
 ### Pending Tasks:
 
 #### Views
-- ❌ Create Blueprint management views (index, create, edit, show)
 - ❌ Create Question Paper management views (index, create, edit, show)
 - ❌ Create Invigilator management views (index, create, edit, show)
 - ❌ Create Seating Plan management views (index, create, edit, show)
