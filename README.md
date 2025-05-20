@@ -1,61 +1,168 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Exam Seat Management System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A comprehensive system for managing examination seating arrangements and question paper generation.
 
-## About Laravel
+## Project Overview
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+The Exam Seat Management System is designed to automate the process of allocating students to examination rooms and blocks, ensuring fairness, efficiency, and adherence to guidelines. Additionally, it provides a comprehensive module for creating, managing, and generating question papers for exams.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### Technology Stack
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **Frontend**: HTML, CSS, Bootstrap 5, JavaScript
+- **Backend**: Laravel 10
+- **Database**: MySQL
 
-## Learning Laravel
+## Features
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### Seat Plan Module
+- Manage seating arrangements for various examination scenarios
+- Maintain separate master tables for rooms, students, and blocks
+- Generate seating plans based on predefined rules and constraints
+- Handle special cases such as students with disabilities, mixed branches, and emergency situations
+- Provide digital seating charts and notifications to students and staff
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### Question Bank Module
+- Organize questions hierarchically by Subject → Unit → Topic → Question Type
+- Provide dynamic fields based on the selected question type
+- Enable dynamic management of Bloom's Taxonomy levels (add, edit, delete)
+- Allow users to define blueprints for question papers with customizable conditions
+- Generate question papers based on user-defined blueprints or randomly
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Project Status
 
-## Laravel Sponsors
+### Completed Tasks
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+#### Database Structure
+- [x] Created migrations for all required tables:
+  - Blocks
+  - Rooms
+  - Courses
+  - Students
+  - Seating Plans
+  - Subjects
+  - Units
+  - Topics
+  - Blooms Taxonomy
+  - Questions
+  - Blueprints
+  - Question Papers
+  - Invigilators
+  - Room Invigilator Assignments
 
-### Premium Partners
+#### Models
+- [x] Created all required models with relationships:
+  - Block
+  - Room
+  - Course
+  - Student
+  - SeatingPlan
+  - Subject
+  - Unit
+  - Topic
+  - BloomsTaxonomy
+  - Question
+  - Blueprint
+  - QuestionPaper
+  - Invigilator
+  - RoomInvigilatorAssignment
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+#### Controllers
+- [x] Created controllers for all modules:
+  - Auth/LoginController
+  - DashboardController
+  - BlockController
+  - RoomController
+  - CourseController
+  - StudentController
+  - SeatingPlanController
+  - SubjectController
+  - UnitController
+  - TopicController
+  - BloomsTaxonomyController
+  - QuestionController
+  - BlueprintController
+  - QuestionPaperController
+  - InvigilatorController
+  - RoomInvigilatorAssignmentController
 
-## Contributing
+#### Views
+- [x] Created layout template with navy blue theme
+- [x] Implemented responsive design with Bootstrap 5
+- [x] Created login page with custom design
+- [x] Created dashboard with statistics and quick actions
+- [x] Implemented Block management views (index, create, edit, show)
+- [x] Implemented Room management views (index, create, edit, show)
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Pending Tasks
 
-## Code of Conduct
+#### Views
+- [ ] Create Course management views (index, create, edit, show)
+- [ ] Create Student management views (index, create, edit, show)
+- [ ] Create Invigilator management views (index, create, edit, show)
+- [ ] Create Seating Plan management views (index, create, edit, show)
+- [ ] Create Subject management views (index, create, edit, show)
+- [ ] Create Unit management views (index, create, edit, show)
+- [ ] Create Topic management views (index, create, edit, show)
+- [ ] Create Bloom's Taxonomy management views (index, create, edit, show)
+- [ ] Create Question management views (index, create, edit, show)
+- [ ] Create Blueprint management views (index, create, edit, show)
+- [ ] Create Question Paper management views (index, create, edit, show)
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+#### Functionality
+- [ ] Implement authentication system with proper middleware
+- [ ] Implement seating arrangement algorithm
+- [ ] Develop question paper generation system
+- [ ] Add import/export functionality for student data
+- [ ] Implement user roles and permissions
+- [ ] Add validation for all forms
+- [ ] Implement search and filter functionality
+- [ ] Add reporting and analytics features
 
-## Security Vulnerabilities
+#### Testing
+- [ ] Write unit tests for models
+- [ ] Write feature tests for controllers
+- [ ] Perform user acceptance testing
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Installation
+
+1. Clone the repository
+```bash
+git clone https://github.com/yourusername/examseat.git
+```
+
+2. Install dependencies
+```bash
+composer install
+npm install
+```
+
+3. Create .env file and configure database
+```bash
+cp .env.example .env
+php artisan key:generate
+```
+
+4. Run migrations
+```bash
+php artisan migrate
+```
+
+5. Seed the database (optional)
+```bash
+php artisan db:seed
+```
+
+6. Start the development server
+```bash
+php artisan serve
+```
+
+## Login Credentials
+
+- **Username**: admin@kalvierp.com
+- **Password**: kalvierp2025@coe
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+This project is licensed under the MIT License.
+
