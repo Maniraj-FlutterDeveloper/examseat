@@ -93,3 +93,6 @@ Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name
 // Include reporting and analytics routes
 require __DIR__.'/reporting_analytics.php';
 
+// Include user management routes
+require __DIR__.'/user_management.php';
+
