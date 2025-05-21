@@ -91,7 +91,7 @@ class StudentPortalController extends Controller
         
         // Handle password update
         if (!empty($validated['password'])) {
-            $validated['password'] = bcrypt($validated['password']);
+            $validated['password'] = Hash::make($validated['password']);
         } else {
             unset($validated['password']);
         }

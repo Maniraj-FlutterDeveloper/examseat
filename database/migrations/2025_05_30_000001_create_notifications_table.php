@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('notifications', function (Blueprint $table) {
-            $table->id();
+            $table->ulid('id')->primary();
             $table->morphs('recipient');
             $table->string('title');
             $table->text('message');
@@ -32,4 +32,3 @@ return new class extends Migration
         Schema::dropIfExists('notifications');
     }
 };
-
