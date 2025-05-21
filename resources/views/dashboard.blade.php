@@ -1,68 +1,216 @@
-@extends('layouts.app')
-
-@section('content')
-<div class="container-fluid">
-    <h1 class="page-title">Dashboard</h1>
-    
-    <div class="row">
-        <div class="col-md-3 col-sm-6 mb-4">
-            <div class="card stats-card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="stats-number">{{ $stats['blocks'] }}</div>
-                            <div class="stats-text">Blocks</div>
-                        </div>
-                        <div class="stats-icon">
-                            <i class="fas fa-building"></i>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard - Exam Seat Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #000080; /* Navy Blue */
+            --secondary-color: #f8f9fa;
+            --accent-color: #0056b3;
+        }
+        
+        body {
+            background-color: var(--secondary-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .sidebar {
+            background-color: var(--primary-color);
+            color: white;
+            height: 100vh;
+            position: fixed;
+            padding-top: 20px;
+        }
+        
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 10px 20px;
+            margin: 5px 0;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        
+        .sidebar .nav-link i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+            margin-bottom: 20px;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+            padding: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 sidebar">
+                <div class="text-center mb-4">
+                    <h4>Exam Seat Management</h4>
+                </div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-chair"></i> My Seat</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-calendar-alt"></i> Exam Schedule</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-file-alt"></i> Question Papers</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-user"></i> Profile</a>
+                    </li>
+                    <li class="nav-item mt-5">
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="nav-link border-0 bg-transparent">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-md-10 main-content">
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <h2>User Dashboard</h2>
+                        <p>Welcome to the Exam Seat Management System</p>
+                    </div>
+                </div>
+                
+                <!-- Upcoming Exams -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Upcoming Exams</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Subject</th>
+                                                <th>Date</th>
+                                                <th>Time</th>
+                                                <th>Room</th>
+                                                <th>Seat</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Mathematics</td>
+                                                <td>June 15, 2025</td>
+                                                <td>10:00 AM - 12:00 PM</td>
+                                                <td>Room 101, Block A</td>
+                                                <td>A12</td>
+                                                <td>
+                                                    <a href="#" class="btn btn-sm btn-outline-primary">
+                                                        <i class="fas fa-map-marker-alt"></i> View Location
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Computer Science</td>
+                                                <td>June 18, 2025</td>
+                                                <td>2:00 PM - 4:00 PM</td>
+                                                <td>Room 205, Block B</td>
+                                                <td>B08</td>
+                                                <td>
+                                                    <a href="#" class="btn btn-sm btn-outline-primary">
+                                                        <i class="fas fa-map-marker-alt"></i> View Location
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Physics</td>
+                                                <td>June 22, 2025</td>
+                                                <td>10:00 AM - 12:00 PM</td>
+                                                <td>Room 303, Block C</td>
+                                                <td>C15</td>
+                                                <td>
+                                                    <a href="#" class="btn btn-sm btn-outline-primary">
+                                                        <i class="fas fa-map-marker-alt"></i> View Location
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3 col-sm-6 mb-4">
-            <div class="card stats-card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="stats-number">{{ $stats['rooms'] }}</div>
-                            <div class="stats-text">Rooms</div>
-                        </div>
-                        <div class="stats-icon">
-                            <i class="fas fa-door-open"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3 col-sm-6 mb-4">
-            <div class="card stats-card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="stats-number">{{ $stats['students'] }}</div>
-                            <div class="stats-text">Students</div>
-                        </div>
-                        <div class="stats-icon">
-                            <i class="fas fa-user-graduate"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3 col-sm-6 mb-4">
-            <div class="card stats-card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="stats-number">{{ $stats['subjects'] }}</div>
-                            <div class="stats-text">Subjects</div>
-                        </div>
-                        <div class="stats-icon">
-                            <i class="fas fa-book-open"></i>
+                
+                <!-- Notifications -->
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Notifications</h5>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <i class="fas fa-bell text-primary me-2"></i>
+                                            <span>Your seat for Mathematics exam has been assigned.</span>
+                                        </div>
+                                        <span class="badge bg-primary rounded-pill">New</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <i class="fas fa-bell text-primary me-2"></i>
+                                            <span>Computer Science exam has been rescheduled to June 18.</span>
+                                        </div>
+                                        <span class="badge bg-secondary rounded-pill">2 days ago</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <i class="fas fa-bell text-primary me-2"></i>
+                                            <span>Please bring your ID card for all exams.</span>
+                                        </div>
+                                        <span class="badge bg-secondary rounded-pill">1 week ago</span>
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -70,133 +218,6 @@
         </div>
     </div>
     
-    <div class="row">
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Recent Seating Plans</h5>
-                    <a href="{{ route('seating-plans.index') }}" class="btn btn-sm btn-outline-primary">View All</a>
-                </div>
-                <div class="card-body">
-                    @if($recentSeatingPlans->count() > 0)
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Exam</th>
-                                        <th>Room</th>
-                                        <th>Student</th>
-                                        <th>Date</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($recentSeatingPlans as $plan)
-                                        <tr>
-                                            <td>{{ $plan->exam_name }}</td>
-                                            <td>{{ $plan->room->room_number }}</td>
-                                            <td>{{ $plan->student->name }}</td>
-                                            <td>{{ $plan->exam_date->format('M d, Y') }}</td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    @else
-                        <div class="text-center py-3">
-                            <i class="fas fa-chair fa-3x text-muted mb-3"></i>
-                            <p>No seating plans created yet.</p>
-                            <a href="{{ route('seating-plans.create') }}" class="btn btn-primary">Create Seating Plan</a>
-                        </div>
-                    @endif
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Recent Question Papers</h5>
-                    <a href="{{ route('question-papers.index') }}" class="btn btn-sm btn-outline-primary">View All</a>
-                </div>
-                <div class="card-body">
-                    @if($recentQuestionPapers->count() > 0)
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Title</th>
-                                        <th>Subject</th>
-                                        <th>Marks</th>
-                                        <th>Date</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($recentQuestionPapers as $paper)
-                                        <tr>
-                                            <td>{{ $paper->title }}</td>
-                                            <td>{{ $paper->subject->subject_name }}</td>
-                                            <td>{{ $paper->total_marks }}</td>
-                                            <td>{{ $paper->created_at->format('M d, Y') }}</td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    @else
-                        <div class="text-center py-3">
-                            <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
-                            <p>No question papers created yet.</p>
-                            <a href="{{ route('question-papers.create') }}" class="btn btn-primary">Create Question Paper</a>
-                        </div>
-                    @endif
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="row">
-        <div class="col-md-12 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Quick Actions</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3 col-sm-6 mb-3">
-                            <a href="{{ route('seating-plans.create') }}" class="btn btn-outline-primary w-100 py-3">
-                                <i class="fas fa-chair fa-2x mb-2"></i><br>
-                                Create Seating Plan
-                            </a>
-                        </div>
-                        <div class="col-md-3 col-sm-6 mb-3">
-                            <a href="{{ route('question-papers.create') }}" class="btn btn-outline-primary w-100 py-3">
-                                <i class="fas fa-file-alt fa-2x mb-2"></i><br>
-                                Generate Question Paper
-                            </a>
-                        </div>
-                        <div class="col-md-3 col-sm-6 mb-3">
-                            <a href="{{ route('students.create') }}" class="btn btn-outline-primary w-100 py-3">
-                                <i class="fas fa-user-graduate fa-2x mb-2"></i><br>
-                                Add Student
-                            </a>
-                        </div>
-                        <div class="col-md-3 col-sm-6 mb-3">
-                            <a href="{{ route('rooms.create') }}" class="btn btn-outline-primary w-100 py-3">
-                                <i class="fas fa-door-open fa-2x mb-2"></i><br>
-                                Add Room
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-@endsection
-
-@push('scripts')
-<script>
-    // Add any dashboard-specific JavaScript here
-</script>
-@endpush
-
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
