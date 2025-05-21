@@ -91,16 +91,21 @@ The system consists of two main modules:
 - ✅ Set up all necessary routes for the Question Bank Module
 - ✅ Added AJAX endpoints for dynamic form population
 
+#### Question Bank Module - Frontend (Partially Complete)
+- ✅ Created Subject management views (index, create, edit, show)
+- ✅ Created Unit management views (index, create, edit, show)
+- ✅ Created Topic management views (index, create, edit, show)
+- ✅ Created Bloom's Taxonomy management views (index, create, edit, show)
+- ✅ Created Question management views (index, create, edit, show)
+- ✅ Created Blueprint management views (index, create, show)
+- ✅ Created Question Paper management views (index, show)
+
 ### Pending Tasks
 
 #### Question Bank Module - Frontend
-- ⬜ Create Subject management views (index, create, edit, show)
-- ⬜ Create Unit management views (index, create, edit, show)
-- ⬜ Create Topic management views (index, create, edit, show)
-- ⬜ Create Question management views (index, create, edit, show)
-- ⬜ Create Bloom's Taxonomy management views
-- ⬜ Create Blueprint designer interface
-- ⬜ Create Question Paper generation interface
+- ⬜ Create Blueprint edit view
+- ⬜ Create Question Paper create view
+- ⬜ Create Question Paper edit view
 - ⬜ Implement PDF generation for question papers
 
 #### Additional Features
@@ -109,6 +114,8 @@ The system consists of two main modules:
 - ⬜ Add user management interface
 - ⬜ Implement system settings
 - ⬜ Add data backup and restore functionality
+- ⬜ Implement mobile-responsive design for student portal
+- ⬜ Add email notifications for seating plans and exam schedules
 
 ## Installation
 
@@ -128,3 +135,4 @@ The system consists of two main modules:
 ## License
 
 This project is licensed under the MIT License.
+
