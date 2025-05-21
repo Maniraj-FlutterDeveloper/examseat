@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 
 class StudentPortalController extends Controller
 {
@@ -63,49 +64,42 @@ class StudentPortalController extends Controller
      */
     public function updateProfile(Request $request)
     {
-        $student = $this->getAuthenticatedStudent();
+        $student = auth()->guard('student')->user();
         
-        if (!$student) {
-            return redirect()->route('mobile.login');
-        }
-        
-        $validator = Validator::make($request->all(), [
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:students,email,' . $student->id,
+            'email' => 'required|email|max:255|unique:students,email,' . $student->id,
             'phone' => 'nullable|string|max:20',
+            'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'password' => 'nullable|string|min:8|confirmed',
-            'profile_picture' => 'nullable|image|max:2048',
         ]);
         
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
-        }
-        
-        $student->name = $request->name;
-        $student->email = $request->email;
-        $student->phone = $request->phone;
-        
-        if ($request->filled('password')) {
-            $student->password = Hash::make($request->password);
-        }
-        
+        // Handle profile picture upload
         if ($request->hasFile('profile_picture')) {
-            // Delete old profile picture if exists
-            if ($student->profile_picture) {
-                \Storage::disk('public')->delete($student->profile_picture);
+            try {
+                $oldPicture = $student->profile_picture;
+                $validated['profile_picture'] = $this->handleFileUpload(
+                    $request->file('profile_picture'), 
+                    $oldPicture
+                );
+            } catch (\Exception $e) {
+                return redirect()->back()
+                    ->withInput()
+                    ->withErrors(['profile_picture' => $e->getMessage()]);
             }
-            
-            // Store new profile picture
-            $path = $request->file('profile_picture')->store('profile_pictures', 'public');
-            $student->profile_picture = $path;
         }
         
-        $student->save();
+        // Handle password update
+        if (!empty($validated['password'])) {
+            $validated['password'] = bcrypt($validated['password']);
+        } else {
+            unset($validated['password']);
+        }
+        
+        $student->update($validated);
         
         return redirect()->route('mobile.profile')
-            ->with('success', 'Profile updated successfully.');
+            ->with('success', 'Profile updated successfully!');
     }
     
     /**
@@ -468,5 +462,25 @@ class StudentPortalController extends Controller
         // Check if the question paper's subject is for the student's course
         return $questionPaper->subject->courses()->where('course_id', $course->id)->exists();
     }
+    
+    /**
+     * Handle file upload with proper error handling.
+     *
+     * @param  \Illuminate\Http\UploadedFile  $file
+     * @param  string|null  $oldFile
+     * @return string
+     * @throws \Exception
+     */
+    protected function handleFileUpload($file, $oldFile = null)
+    {
+        try {
+            if ($oldFile) {
+                Storage::disk('public')->delete($oldFile);
+            }
+            return $file->store('profile_pictures', 'public');
+        } catch (\Exception $e) {
+            \Log::error('File upload failed: ' . $e->getMessage());
+            throw new \Exception('Failed to upload file. Please try again.');
+        }
+    }
 }
-

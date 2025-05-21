@@ -17,8 +17,6 @@ class SeatingPlan extends Model
      */
     protected $fillable = [
         'room_id',
-        'student_id',
-        'seat_number',
         'exam_name',
         'exam_date',
         'start_time',
@@ -46,10 +44,12 @@ class SeatingPlan extends Model
     }
 
     /**
-     * Get the student that owns the seating plan.
+     * Get the students for the seating plan.
      */
-    public function student()
+    public function students()
     {
-        return $this->belongsTo(Student::class);
+        return $this->belongsToMany(Student::class)
+            ->withPivot('room_id', 'seat_number')
+            ->withTimestamps();
     }
 }

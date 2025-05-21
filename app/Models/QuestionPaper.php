@@ -20,7 +20,6 @@ class QuestionPaper extends Model
         'blueprint_id',
         'title',
         'description',
-        'questions',
         'total_marks',
         'duration_minutes',
         'exam_date',
@@ -33,7 +32,6 @@ class QuestionPaper extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'questions' => 'json',
         'total_marks' => 'decimal:2',
         'duration_minutes' => 'integer',
         'exam_date' => 'date',
@@ -53,5 +51,15 @@ class QuestionPaper extends Model
     public function blueprint()
     {
         return $this->belongsTo(Blueprint::class);
+    }
+
+    /**
+     * Get the questions for the question paper.
+     */
+    public function questions()
+    {
+        return $this->belongsToMany(Question::class)
+            ->withPivot('order', 'marks')
+            ->withTimestamps();
     }
 }

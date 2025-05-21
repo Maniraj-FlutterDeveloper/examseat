@@ -54,4 +54,12 @@ class Subject extends Model
     {
         return $this->hasMany(QuestionPaper::class);
     }
+
+    /**
+     * Get the courses for the subject.
+     */
+    public function courses()
+    {
+        return $this->belongsToMany(Course::class);
+    }
 }
