@@ -34,7 +34,20 @@ class LoginController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
-            return redirect()->intended('dashboard');
+            $user = Auth::user();
+            
+            if (!$user->isActive()) {
+                Auth::logout();
+                return back()->withErrors([
+                    'email' => 'Your account is inactive.',
+                ])->onlyInput('email');
+            }
+
+            if ($user->isAdmin()) {
+                return redirect()->intended('/admin/dashboard');
+            }
+
+            return redirect()->intended('/dashboard');
         }
 
         return back()->withErrors([
@@ -53,7 +66,6 @@ class LoginController extends Controller
         Auth::logout();
 
         $request->session()->invalidate();
-
         $request->session()->regenerateToken();
 
         return redirect('/');

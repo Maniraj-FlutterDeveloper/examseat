@@ -20,6 +20,7 @@ class Student extends Model
         'roll_number',
         'name',
         'email',
+        'phone',
         'year',
         'section',
         'has_disability',

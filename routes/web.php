@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\PdfController;
+use App\Http\Controllers\Admin\NotificationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -70,6 +71,17 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     
     // PDF Generation
     Route::get('pdf/question-paper/{id}', [PdfController::class, 'generateQuestionPaperPdf'])->name('pdf.question_paper');
+    
+    // Notifications
+    Route::resource('notifications', NotificationController::class)->only(['index', 'show', 'store', 'destroy']);
+    Route::get('notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.mark_as_read');
+    Route::get('notifications/{id}/mark-as-unread', [NotificationController::class, 'markAsUnread'])->name('notifications.mark_as_unread');
+    Route::post('notifications/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark_all_as_read');
+    Route::post('notifications/clear-read', [NotificationController::class, 'clearRead'])->name('notifications.clear_read');
+    Route::post('notifications/send-to-multiple', [NotificationController::class, 'sendToMultiple'])->name('notifications.send_to_multiple');
+    Route::post('notifications/send-to-all', [NotificationController::class, 'sendToAll'])->name('notifications.send_to_all');
+    Route::get('notifications/unread-count', [NotificationController::class, 'getUnreadCount'])->name('notifications.unread_count');
+    Route::get('notifications/recent-unread', [NotificationController::class, 'getRecentUnread'])->name('notifications.recent_unread');
 });
 
 // Auth routes
@@ -77,3 +89,4 @@ Auth::routes();
 
 // Home route
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
