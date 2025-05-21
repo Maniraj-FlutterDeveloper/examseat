@@ -3,12 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Model;
 
-class Student extends Authenticatable
+class Student extends Model
 {
-    use HasFactory, Notifiable;
+    use HasFactory;
 
     /**
      * The attributes that are mass assignable.
@@ -16,26 +15,13 @@ class Student extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
         'roll_number',
-        'email',
-        'phone',
+        'name',
         'course_id',
         'year',
         'section',
-        'password',
-        'profile_picture',
-        'status',
-    ];
-
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
-    protected $hidden = [
-        'password',
-        'remember_token',
+        'has_disability',
+        'disability_details',
     ];
 
     /**
@@ -44,12 +30,11 @@ class Student extends Authenticatable
      * @var array<string, string>
      */
     protected $casts = [
-        'email_verified_at' => 'datetime',
-        'password' => 'hashed',
+        'has_disability' => 'boolean',
     ];
 
     /**
-     * Get the course that the student belongs to.
+     * Get the course that owns the student.
      */
     public function course()
     {
@@ -57,53 +42,27 @@ class Student extends Authenticatable
     }
 
     /**
-     * Get the seating plans for the student.
+     * Get the priorities for the student.
      */
-    public function seatingPlans()
+    public function priorities()
     {
-        return $this->belongsToMany(SeatingPlan::class, 'seating_plan_student')
-            ->withPivot('room_id', 'seat_number')
-            ->withTimestamps();
+        return $this->hasMany(StudentPriority::class);
     }
 
     /**
-     * Get the notifications for the student.
+     * Get the seating assignments for the student.
      */
-    public function notifications()
+    public function seatingAssignments()
     {
-        return $this->morphMany(Notification::class, 'recipient');
+        return $this->hasMany(SeatingAssignment::class);
     }
 
     /**
-     * Get the unread notifications for the student.
+     * Get the seating overrides for the student.
      */
-    public function unreadNotifications()
+    public function seatingOverrides()
     {
-        return $this->notifications()->whereNull('read_at');
-    }
-
-    /**
-     * Get the profile picture URL.
-     *
-     * @return string
-     */
-    public function getProfilePictureUrlAttribute()
-    {
-        if ($this->profile_picture) {
-            return asset('storage/' . $this->profile_picture);
-        }
-
-        return asset('images/default-profile.png');
-    }
-
-    /**
-     * Check if the student is active.
-     *
-     * @return bool
-     */
-    public function isActive()
-    {
-        return $this->status === 'active';
+        return $this->hasMany(SeatingOverride::class);
     }
 }
 

@@ -44,12 +44,19 @@ class SeatingPlan extends Model
     }
 
     /**
-     * Get the students for the seating plan.
+     * Get the assignments for the seating plan.
      */
-    public function students()
+    public function assignments()
     {
-        return $this->belongsToMany(Student::class)
-            ->withPivot('room_id', 'seat_number')
-            ->withTimestamps();
+        return $this->hasMany(SeatingAssignment::class);
+    }
+
+    /**
+     * Get the overrides for the seating plan.
+     */
+    public function overrides()
+    {
+        return $this->hasMany(SeatingOverride::class);
     }
 }
+

@@ -4,11 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Room extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     /**
      * The attributes that are mass assignable.
@@ -19,8 +18,8 @@ class Room extends Model
         'block_id',
         'room_number',
         'capacity',
-        'description',
-        'is_active',
+        'is_accessible',
+        'layout',
     ];
 
     /**
@@ -29,7 +28,9 @@ class Room extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'is_active' => 'boolean',
+        'capacity' => 'integer',
+        'is_accessible' => 'boolean',
+        'layout' => 'json',
     ];
 
     /**
@@ -49,10 +50,19 @@ class Room extends Model
     }
 
     /**
-     * Get the invigilator assignments for the room.
+     * Get the seating assignments for the room.
      */
-    public function invigilatorAssignments()
+    public function seatingAssignments()
     {
-        return $this->hasMany(RoomInvigilatorAssignment::class);
+        return $this->hasMany(SeatingAssignment::class);
+    }
+
+    /**
+     * Get the seating overrides for the room.
+     */
+    public function seatingOverrides()
+    {
+        return $this->hasMany(SeatingOverride::class);
     }
 }
+
