@@ -91,21 +91,17 @@ The system consists of two main modules:
 - ✅ Set up all necessary routes for the Question Bank Module
 - ✅ Added AJAX endpoints for dynamic form population
 
-#### Question Bank Module - Frontend (Partially Complete)
+#### Question Bank Module - Frontend (100% Complete)
 - ✅ Created Subject management views (index, create, edit, show)
 - ✅ Created Unit management views (index, create, edit, show)
 - ✅ Created Topic management views (index, create, edit, show)
 - ✅ Created Bloom's Taxonomy management views (index, create, edit, show)
 - ✅ Created Question management views (index, create, edit, show)
 - ✅ Created Blueprint management views (index, create, edit, show)
-- ✅ Created Question Paper management views (index, show)
+- ✅ Created Question Paper management views (index, create, edit, show)
+- ✅ Implemented PDF generation for question papers
 
 ### Pending Tasks
-
-#### Question Bank Module - Frontend
-- ⬜ Create Question Paper create view
-- ⬜ Create Question Paper edit view
-- ⬜ Implement PDF generation for question papers
 
 #### Additional Features
 - ⬜ Implement notification system
