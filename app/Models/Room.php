@@ -19,6 +19,8 @@ class Room extends Model
         'block_id',
         'room_number',
         'capacity',
+        'rows',
+        'columns',
         'description',
         'is_active',
     ];
@@ -29,6 +31,9 @@ class Room extends Model
      * @var array<string, string>
      */
     protected $casts = [
+        'capacity' => 'integer',
+        'rows' => 'integer',
+        'columns' => 'integer',
         'is_active' => 'boolean',
     ];
 

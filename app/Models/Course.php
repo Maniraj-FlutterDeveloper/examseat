@@ -19,7 +19,7 @@ class Course extends Model
         'course_name',
         'course_code',
         'description',
-        'duration_years',
+        'duration',
         'is_active',
     ];
 
@@ -29,7 +29,7 @@ class Course extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'duration_years' => 'integer',
+        'duration' => 'integer',
         'is_active' => 'boolean',
     ];
 
