@@ -172,9 +172,13 @@ class SeatingPlanController extends Controller
                 ->with('error', 'No seating assignments found. Please generate assignments first.');
         }
         
-        // Save the assignments to the database
-        // This would typically involve creating SeatingAssignment records
-        // or similar, depending on your data model
+        // Save the assignments to the database using the service
+        $success = $this->seatingRuleService->saveAssignments($seatingPlan, $assignments);
+        
+        if (!$success) {
+            return redirect()->route('seating.plans.show', $seatingPlan)
+                ->with('error', 'Failed to save seating assignments. Please try again.');
+        }
         
         // Clear the assignments from the session
         session()->forget('seating_assignments');

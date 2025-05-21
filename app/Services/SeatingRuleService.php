@@ -8,7 +8,9 @@ use App\Models\SeatingPlan;
 use App\Models\SeatingRule;
 use App\Models\StudentPriority;
 use App\Models\SeatingOverride;
+use App\Models\SeatingAssignment;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class SeatingRuleService
 {
@@ -62,7 +64,7 @@ class SeatingRuleService
                 return $this->applyDistanceRule($rule, $students, $rooms, $currentAssignments);
             
             case 'priority':
-                return $this->applyPriorityRule($rule, $students, $rooms, $currentAssignments);
+                return $this->applyPriorityRule($rule, $seatingPlan, $students, $rooms, $currentAssignments);
             
             default:
                 return $currentAssignments;
@@ -91,14 +93,14 @@ class SeatingRuleService
         
         // Get parameters from the rule
         $parameters = $rule->parameters ?? [];
-        
-        // Implement the alternate courses logic
-        // This is a simplified version - in a real implementation, you would need more complex logic
+        $minDistance = $parameters['min_distance'] ?? 1;
         
         // For each room
         foreach ($rooms as $room) {
             $roomId = $room->id;
             $capacity = $room->capacity;
+            $seatsPerRow = $room->layout['seats_per_row'] ?? 5;
+            $totalRows = ceil($capacity / $seatsPerRow);
             
             // Skip if room is already fully assigned
             if (isset($currentAssignments[$roomId]) && count($currentAssignments[$roomId]) >= $capacity) {
@@ -108,14 +110,6 @@ class SeatingRuleService
             // Initialize room assignments if not set
             if (!isset($currentAssignments[$roomId])) {
                 $currentAssignments[$roomId] = [];
-            }
-            
-            // Get available seats in this room
-            $availableSeats = $capacity - count($currentAssignments[$roomId]);
-            
-            // Skip if no available seats
-            if ($availableSeats <= 0) {
-                continue;
             }
             
             // Get courses with remaining students
@@ -128,45 +122,128 @@ class SeatingRuleService
                 continue;
             }
             
+            // Create a map of the room with rows and columns
+            $seatMap = [];
+            for ($row = 0; $row < $totalRows; $row++) {
+                for ($col = 0; $col < $seatsPerRow; $col++) {
+                    $seatNumber = ($row * $seatsPerRow) + $col + 1;
+                    if ($seatNumber <= $capacity) {
+                        $seatMap[$row][$col] = [
+                            'seat_number' => $seatNumber,
+                            'assigned' => isset($currentAssignments[$roomId][$seatNumber]),
+                            'course_id' => isset($currentAssignments[$roomId][$seatNumber]) ? 
+                                Student::find($currentAssignments[$roomId][$seatNumber])->course_id : null
+                        ];
+                    }
+                }
+            }
+            
             // Assign seats in alternating pattern
             $courseIds = $coursesWithStudents->keys()->toArray();
             $courseIndex = 0;
             
-            for ($seatNumber = 1; $seatNumber <= $capacity; $seatNumber++) {
-                // Skip if seat is already assigned
-                if (isset($currentAssignments[$roomId][$seatNumber])) {
-                    continue;
-                }
-                
-                // Get the current course
-                $courseId = $courseIds[$courseIndex];
-                
-                // Get a student from this course
-                $student = $studentsByCourse[$courseId]->shift();
-                
-                // If no more students in this course, remove it from the list
-                if ($studentsByCourse[$courseId]->isEmpty()) {
-                    $studentsByCourse->forget($courseId);
-                    $coursesWithStudents = $studentsByCourse->filter(function ($students) {
-                        return $students->isNotEmpty();
-                    });
-                    $courseIds = $coursesWithStudents->keys()->toArray();
-                    
-                    // If no more courses with students, break
-                    if (empty($courseIds)) {
-                        break;
+            // First pass: assign seats with alternating courses
+            for ($row = 0; $row < $totalRows; $row++) {
+                for ($col = 0; $col < $seatsPerRow; $col++) {
+                    if (!isset($seatMap[$row][$col]) || $seatMap[$row][$col]['assigned']) {
+                        continue;
                     }
                     
-                    // Reset course index if needed
-                    $courseIndex = $courseIndex % count($courseIds);
-                } else {
-                    // Move to the next course
-                    $courseIndex = ($courseIndex + 1) % count($courseIds);
+                    $seatNumber = $seatMap[$row][$col]['seat_number'];
+                    
+                    // Check if this seat violates the minimum distance rule
+                    $validSeat = true;
+                    for ($checkRow = max(0, $row - $minDistance); $checkRow <= min($totalRows - 1, $row + $minDistance); $checkRow++) {
+                        for ($checkCol = max(0, $col - $minDistance); $checkCol <= min($seatsPerRow - 1, $col + $minDistance); $checkCol++) {
+                            if (isset($seatMap[$checkRow][$checkCol]) && 
+                                $seatMap[$checkRow][$checkCol]['assigned'] && 
+                                $courseIds[$courseIndex] == $seatMap[$checkRow][$checkCol]['course_id']) {
+                                $validSeat = false;
+                                break 2;
+                            }
+                        }
+                    }
+                    
+                    if (!$validSeat) {
+                        continue;
+                    }
+                    
+                    // Get the current course
+                    $courseId = $courseIds[$courseIndex];
+                    
+                    // Get a student from this course
+                    $student = $studentsByCourse[$courseId]->shift();
+                    
+                    // If no more students in this course, remove it from the list
+                    if ($studentsByCourse[$courseId]->isEmpty()) {
+                        $studentsByCourse->forget($courseId);
+                        $coursesWithStudents = $studentsByCourse->filter(function ($students) {
+                            return $students->isNotEmpty();
+                        });
+                        $courseIds = $coursesWithStudents->keys()->toArray();
+                        
+                        // If no more courses with students, break
+                        if (empty($courseIds)) {
+                            break 2;
+                        }
+                        
+                        // Reset course index if needed
+                        $courseIndex = $courseIndex % count($courseIds);
+                    } else {
+                        // Move to the next course
+                        $courseIndex = ($courseIndex + 1) % count($courseIds);
+                    }
+                    
+                    // Assign the student to this seat
+                    if ($student) {
+                        $currentAssignments[$roomId][$seatNumber] = $student->id;
+                        $seatMap[$row][$col]['assigned'] = true;
+                        $seatMap[$row][$col]['course_id'] = $student->course_id;
+                    }
                 }
-                
-                // Assign the student to this seat
-                if ($student) {
-                    $currentAssignments[$roomId][$seatNumber] = $student->id;
+            }
+            
+            // Second pass: fill in any remaining seats with any remaining students
+            if (!$coursesWithStudents->isEmpty()) {
+                for ($row = 0; $row < $totalRows; $row++) {
+                    for ($col = 0; $col < $seatsPerRow; $col++) {
+                        if (!isset($seatMap[$row][$col]) || $seatMap[$row][$col]['assigned']) {
+                            continue;
+                        }
+                        
+                        $seatNumber = $seatMap[$row][$col]['seat_number'];
+                        
+                        // Find a course with available students
+                        foreach ($coursesWithStudents as $courseId => $courseStudents) {
+                            if ($courseStudents->isEmpty()) {
+                                continue;
+                            }
+                            
+                            // Get a student from this course
+                            $student = $courseStudents->shift();
+                            
+                            // If no more students in this course, remove it from the list
+                            if ($courseStudents->isEmpty()) {
+                                $studentsByCourse->forget($courseId);
+                                $coursesWithStudents = $studentsByCourse->filter(function ($students) {
+                                    return $students->isNotEmpty();
+                                });
+                            }
+                            
+                            // Assign the student to this seat
+                            if ($student) {
+                                $currentAssignments[$roomId][$seatNumber] = $student->id;
+                                $seatMap[$row][$col]['assigned'] = true;
+                                $seatMap[$row][$col]['course_id'] = $student->course_id;
+                                break;
+                            }
+                        }
+                        
+                        // If no more courses with students, break
+                        if ($coursesWithStudents->isEmpty()) {
+                            break 2;
+                        }
+                    }
                 }
             }
         }
@@ -195,13 +272,12 @@ class SeatingRuleService
         $parameters = $rule->parameters ?? [];
         $distance = $parameters['distance'] ?? 1; // Default to 1 seat distance
         
-        // Implement the distance logic
-        // This is a simplified version - in a real implementation, you would need more complex logic
-        
         // For each room
         foreach ($rooms as $room) {
             $roomId = $room->id;
             $capacity = $room->capacity;
+            $seatsPerRow = $room->layout['seats_per_row'] ?? 5;
+            $totalRows = ceil($capacity / $seatsPerRow);
             
             // Skip if room is already fully assigned
             if (isset($currentAssignments[$roomId]) && count($currentAssignments[$roomId]) >= $capacity) {
@@ -213,31 +289,66 @@ class SeatingRuleService
                 $currentAssignments[$roomId] = [];
             }
             
-            // Get available seats in this room
-            $availableSeats = $capacity - count($currentAssignments[$roomId]);
-            
-            // Skip if no available seats
-            if ($availableSeats <= 0) {
-                continue;
+            // Create a map of the room with rows and columns
+            $seatMap = [];
+            for ($row = 0; $row < $totalRows; $row++) {
+                for ($col = 0; $col < $seatsPerRow; $col++) {
+                    $seatNumber = ($row * $seatsPerRow) + $col + 1;
+                    if ($seatNumber <= $capacity) {
+                        $seatMap[$row][$col] = [
+                            'seat_number' => $seatNumber,
+                            'assigned' => isset($currentAssignments[$roomId][$seatNumber])
+                        ];
+                    }
+                }
             }
             
             // Assign seats with distance
-            for ($seatNumber = 1; $seatNumber <= $capacity; $seatNumber += ($distance + 1)) {
-                // Skip if seat is already assigned
-                if (isset($currentAssignments[$roomId][$seatNumber])) {
-                    continue;
+            for ($row = 0; $row < $totalRows; $row += $distance) {
+                for ($col = 0; $col < $seatsPerRow; $col += $distance) {
+                    if (!isset($seatMap[$row][$col]) || $seatMap[$row][$col]['assigned']) {
+                        continue;
+                    }
+                    
+                    $seatNumber = $seatMap[$row][$col]['seat_number'];
+                    
+                    // Get a student
+                    $student = $students->shift();
+                    
+                    // If no more students, break
+                    if (!$student) {
+                        break 2;
+                    }
+                    
+                    // Assign the student to this seat
+                    $currentAssignments[$roomId][$seatNumber] = $student->id;
+                    $seatMap[$row][$col]['assigned'] = true;
                 }
-                
-                // Get a student
-                $student = $students->shift();
-                
-                // If no more students, break
-                if (!$student) {
-                    break;
+            }
+            
+            // Second pass: fill in any remaining seats with any remaining students
+            if ($students->isNotEmpty()) {
+                for ($row = 0; $row < $totalRows; $row++) {
+                    for ($col = 0; $col < $seatsPerRow; $col++) {
+                        if (!isset($seatMap[$row][$col]) || $seatMap[$row][$col]['assigned']) {
+                            continue;
+                        }
+                        
+                        $seatNumber = $seatMap[$row][$col]['seat_number'];
+                        
+                        // Get a student
+                        $student = $students->shift();
+                        
+                        // If no more students, break
+                        if (!$student) {
+                            break 2;
+                        }
+                        
+                        // Assign the student to this seat
+                        $currentAssignments[$roomId][$seatNumber] = $student->id;
+                        $seatMap[$row][$col]['assigned'] = true;
+                    }
                 }
-                
-                // Assign the student to this seat
-                $currentAssignments[$roomId][$seatNumber] = $student->id;
             }
         }
         
@@ -249,12 +360,13 @@ class SeatingRuleService
      * This rule ensures students with priorities are seated according to their needs.
      *
      * @param SeatingRule $rule
+     * @param SeatingPlan $seatingPlan
      * @param Collection $students
      * @param Collection $rooms
      * @param array $currentAssignments
      * @return array
      */
-    protected function applyPriorityRule(SeatingRule $rule, Collection $students, Collection $rooms, array $currentAssignments): array
+    protected function applyPriorityRule(SeatingRule $rule, SeatingPlan $seatingPlan, Collection $students, Collection $rooms, array $currentAssignments): array
     {
         // Initialize assignments if empty
         if (empty($currentAssignments)) {
@@ -266,20 +378,22 @@ class SeatingRuleService
         
         // Get students with priorities
         $studentsWithPriorities = $students->filter(function ($student) {
-            return $student->has_disability || $student->priorities()->where('valid_until', '>=', now())->exists();
+            return $student->has_disability || $student->priorities()->where(function($query) {
+                $query->whereNull('valid_until')->orWhere('valid_until', '>=', now());
+            })->exists();
         });
         
         // Sort students by priority level
         $studentsWithPriorities = $studentsWithPriorities->sortByDesc(function ($student) {
-            $priority = $student->priorities()->where('valid_until', '>=', now())->orderBy('priority_level', 'desc')->first();
+            $priority = $student->priorities()->where(function($query) {
+                $query->whereNull('valid_until')->orWhere('valid_until', '>=', now());
+            })->orderBy('priority_level', 'desc')->first();
+            
             return $priority ? $priority->priority_level : ($student->has_disability ? 10 : 0);
         });
         
         // Remove students with priorities from the main collection
         $students = $students->diff($studentsWithPriorities);
-        
-        // Implement the priority logic
-        // This is a simplified version - in a real implementation, you would need more complex logic
         
         // For each room
         foreach ($rooms as $room) {
@@ -304,9 +418,10 @@ class SeatingRuleService
                 continue;
             }
             
-            // Assign priority seats first (e.g., front row, near door, etc.)
+            // Get priority seats for this room
             $prioritySeats = $this->getPrioritySeats($room, $parameters);
             
+            // Assign priority students to priority seats
             foreach ($prioritySeats as $seatNumber) {
                 // Skip if seat is already assigned
                 if (isset($currentAssignments[$roomId][$seatNumber])) {
@@ -323,6 +438,27 @@ class SeatingRuleService
                 
                 // Assign the student to this seat
                 $currentAssignments[$roomId][$seatNumber] = $student->id;
+            }
+            
+            // If there are still priority students, assign them to other available seats
+            if ($studentsWithPriorities->isNotEmpty()) {
+                for ($seatNumber = 1; $seatNumber <= $capacity; $seatNumber++) {
+                    // Skip if seat is already assigned or is a priority seat
+                    if (isset($currentAssignments[$roomId][$seatNumber]) || in_array($seatNumber, $prioritySeats)) {
+                        continue;
+                    }
+                    
+                    // Get a student with priority
+                    $student = $studentsWithPriorities->shift();
+                    
+                    // If no more students with priority, break
+                    if (!$student) {
+                        break;
+                    }
+                    
+                    // Assign the student to this seat
+                    $currentAssignments[$roomId][$seatNumber] = $student->id;
+                }
             }
         }
         
@@ -385,25 +521,105 @@ class SeatingRuleService
      */
     protected function getPrioritySeats(Room $room, array $parameters): array
     {
-        // This is a simplified version - in a real implementation, you would need more complex logic
-        // based on the room layout and specific needs
-        
         $prioritySeats = [];
+        $capacity = $room->capacity;
+        $seatsPerRow = $parameters['seats_per_row'] ?? ($room->layout['seats_per_row'] ?? 5);
+        $totalRows = ceil($capacity / $seatsPerRow);
         
-        // Front row seats (assuming seats are numbered in rows)
-        $seatsPerRow = $parameters['seats_per_row'] ?? 5;
-        for ($i = 1; $i <= $seatsPerRow; $i++) {
+        // Front row seats
+        for ($i = 1; $i <= $seatsPerRow && $i <= $capacity; $i++) {
             $prioritySeats[] = $i;
+        }
+        
+        // Aisle seats (assuming aisles are at the edges of each row)
+        for ($row = 0; $row < $totalRows; $row++) {
+            // Left edge of row
+            $leftSeat = ($row * $seatsPerRow) + 1;
+            if ($leftSeat <= $capacity) {
+                $prioritySeats[] = $leftSeat;
+            }
+            
+            // Right edge of row
+            $rightSeat = ($row + 1) * $seatsPerRow;
+            if ($rightSeat <= $capacity) {
+                $prioritySeats[] = $rightSeat;
+            }
         }
         
         // Seats near the door (assuming the door is at a specific location)
         $doorSeat = $parameters['door_seat'] ?? 1;
         $prioritySeats[] = $doorSeat;
         
-        // Remove duplicates
+        // Seats near accessible facilities (if specified)
+        if (isset($parameters['accessible_seats'])) {
+            foreach ($parameters['accessible_seats'] as $seat) {
+                if ($seat <= $capacity) {
+                    $prioritySeats[] = $seat;
+                }
+            }
+        }
+        
+        // Remove duplicates and sort
         $prioritySeats = array_unique($prioritySeats);
+        sort($prioritySeats);
         
         return $prioritySeats;
+    }
+    
+    /**
+     * Save the generated seating assignments to the database.
+     *
+     * @param SeatingPlan $seatingPlan
+     * @param array $assignments
+     * @return bool
+     */
+    public function saveAssignments(SeatingPlan $seatingPlan, array $assignments): bool
+    {
+        try {
+            // Start a database transaction
+            DB::beginTransaction();
+            
+            // Delete any existing assignments for this seating plan
+            SeatingAssignment::where('seating_plan_id', $seatingPlan->id)->delete();
+            
+            // Create new assignments
+            foreach ($assignments as $roomId => $roomAssignments) {
+                foreach ($roomAssignments as $seatNumber => $studentId) {
+                    // Check if this is an override
+                    $isOverride = SeatingOverride::where('seating_plan_id', $seatingPlan->id)
+                        ->where('room_id', $roomId)
+                        ->where('seat_number', $seatNumber)
+                        ->exists();
+                    
+                    // Create the assignment
+                    SeatingAssignment::create([
+                        'seating_plan_id' => $seatingPlan->id,
+                        'student_id' => $studentId,
+                        'room_id' => $roomId,
+                        'seat_number' => $seatNumber,
+                        'is_override' => $isOverride,
+                    ]);
+                }
+            }
+            
+            // Update the seating plan status if it's still scheduled
+            if ($seatingPlan->status === 'scheduled') {
+                $seatingPlan->update(['status' => 'ready']);
+            }
+            
+            // Commit the transaction
+            DB::commit();
+            
+            return true;
+        } catch (\Exception $e) {
+            // Rollback the transaction if something goes wrong
+            DB::rollBack();
+            
+            // Log the error
+            \Log::error('Error saving seating assignments: ' . $e->getMessage());
+            
+            return false;
+        }
     }
 }
 
