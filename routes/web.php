@@ -90,3 +90,6 @@ Auth::routes();
 // Home route
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
+// Include reporting and analytics routes
+require __DIR__.'/reporting_analytics.php';
+
