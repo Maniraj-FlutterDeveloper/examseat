@@ -97,13 +97,12 @@ The system consists of two main modules:
 - ✅ Created Topic management views (index, create, edit, show)
 - ✅ Created Bloom's Taxonomy management views (index, create, edit, show)
 - ✅ Created Question management views (index, create, edit, show)
-- ✅ Created Blueprint management views (index, create, show)
+- ✅ Created Blueprint management views (index, create, edit, show)
 - ✅ Created Question Paper management views (index, show)
 
 ### Pending Tasks
 
 #### Question Bank Module - Frontend
-- ⬜ Create Blueprint edit view
 - ⬜ Create Question Paper create view
 - ⬜ Create Question Paper edit view
 - ⬜ Implement PDF generation for question papers
