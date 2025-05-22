@@ -7,22 +7,26 @@ use App\Models\Student;
 use App\Models\SeatingPlan;
 use App\Models\SeatingOverride;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class SeatingOverrideController extends Controller
 {
     /**
      * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
      */
     public function index()
     {
-        $overrides = SeatingOverride::with(['seatingPlan', 'student', 'room', 'creator'])->get();
+        $overrides = SeatingOverride::with(['seatingPlan', 'student', 'room'])->get();
         return view('seating.overrides.index', compact('overrides'));
     }
 
     /**
      * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
      */
     public function create()
     {
@@ -34,6 +38,9 @@ class SeatingOverrideController extends Controller
 
     /**
      * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
     {
@@ -41,8 +48,9 @@ class SeatingOverrideController extends Controller
             'seating_plan_id' => 'required|exists:seating_plans,id',
             'student_id' => 'required|exists:students,id',
             'room_id' => 'required|exists:rooms,id',
-            'seat_number' => 'required|string|max:10',
-            'reason' => 'nullable|string',
+            'seat_number' => 'required|integer|min:1',
+            'reason' => 'required|string',
+            'created_by' => 'required|string|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -51,7 +59,15 @@ class SeatingOverrideController extends Controller
                 ->withInput();
         }
 
-        // Check if the seat is already assigned
+        // Validate that the seat number is within the room's capacity
+        $room = Room::find($request->room_id);
+        if ($request->seat_number > $room->capacity) {
+            return redirect()->back()
+                ->withErrors(['seat_number' => 'The seat number exceeds the room capacity.'])
+                ->withInput();
+        }
+
+        // Check if the seat is already assigned in an override
         $existingOverride = SeatingOverride::where('seating_plan_id', $request->seating_plan_id)
             ->where('room_id', $request->room_id)
             ->where('seat_number', $request->seat_number)
@@ -59,28 +75,28 @@ class SeatingOverrideController extends Controller
 
         if ($existingOverride) {
             return redirect()->back()
-                ->withErrors(['seat_number' => 'This seat is already assigned to another student.'])
+                ->withErrors(['seat_number' => 'This seat is already assigned in an override.'])
                 ->withInput();
         }
 
-        // Check if the student is already assigned
-        $existingStudentOverride = SeatingOverride::where('seating_plan_id', $request->seating_plan_id)
+        // Check if the student is already assigned in an override for this seating plan
+        $studentOverride = SeatingOverride::where('seating_plan_id', $request->seating_plan_id)
             ->where('student_id', $request->student_id)
             ->first();
 
-        if ($existingStudentOverride) {
+        if ($studentOverride) {
             return redirect()->back()
-                ->withErrors(['student_id' => 'This student is already assigned to another seat.'])
+                ->withErrors(['student_id' => 'This student already has an override for this seating plan.'])
                 ->withInput();
         }
 
-        $override = SeatingOverride::create([
+        SeatingOverride::create([
             'seating_plan_id' => $request->seating_plan_id,
             'student_id' => $request->student_id,
             'room_id' => $request->room_id,
             'seat_number' => $request->seat_number,
             'reason' => $request->reason,
-            'created_by' => Auth::id(),
+            'created_by' => $request->created_by,
         ]);
 
         return redirect()->route('seating.overrides.index')
@@ -89,6 +105,9 @@ class SeatingOverrideController extends Controller
 
     /**
      * Display the specified resource.
+     *
+     * @param  \App\Models\SeatingOverride  $override
+     * @return \Illuminate\Http\Response
      */
     public function show(SeatingOverride $override)
     {
@@ -97,6 +116,9 @@ class SeatingOverrideController extends Controller
 
     /**
      * Show the form for editing the specified resource.
+     *
+     * @param  \App\Models\SeatingOverride  $override
+     * @return \Illuminate\Http\Response
      */
     public function edit(SeatingOverride $override)
     {
@@ -108,6 +130,10 @@ class SeatingOverrideController extends Controller
 
     /**
      * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\SeatingOverride  $override
+     * @return \Illuminate\Http\Response
      */
     public function update(Request $request, SeatingOverride $override)
     {
@@ -115,8 +141,9 @@ class SeatingOverrideController extends Controller
             'seating_plan_id' => 'required|exists:seating_plans,id',
             'student_id' => 'required|exists:students,id',
             'room_id' => 'required|exists:rooms,id',
-            'seat_number' => 'required|string|max:10',
-            'reason' => 'nullable|string',
+            'seat_number' => 'required|integer|min:1',
+            'reason' => 'required|string',
+            'created_by' => 'required|string|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -125,7 +152,15 @@ class SeatingOverrideController extends Controller
                 ->withInput();
         }
 
-        // Check if the seat is already assigned (excluding this override)
+        // Validate that the seat number is within the room's capacity
+        $room = Room::find($request->room_id);
+        if ($request->seat_number > $room->capacity) {
+            return redirect()->back()
+                ->withErrors(['seat_number' => 'The seat number exceeds the room capacity.'])
+                ->withInput();
+        }
+
+        // Check if the seat is already assigned in an override (excluding this one)
         $existingOverride = SeatingOverride::where('seating_plan_id', $request->seating_plan_id)
             ->where('room_id', $request->room_id)
             ->where('seat_number', $request->seat_number)
@@ -134,19 +169,19 @@ class SeatingOverrideController extends Controller
 
         if ($existingOverride) {
             return redirect()->back()
-                ->withErrors(['seat_number' => 'This seat is already assigned to another student.'])
+                ->withErrors(['seat_number' => 'This seat is already assigned in another override.'])
                 ->withInput();
         }
 
-        // Check if the student is already assigned (excluding this override)
-        $existingStudentOverride = SeatingOverride::where('seating_plan_id', $request->seating_plan_id)
+        // Check if the student is already assigned in an override for this seating plan (excluding this one)
+        $studentOverride = SeatingOverride::where('seating_plan_id', $request->seating_plan_id)
             ->where('student_id', $request->student_id)
             ->where('id', '!=', $override->id)
             ->first();
 
-        if ($existingStudentOverride) {
+        if ($studentOverride) {
             return redirect()->back()
-                ->withErrors(['student_id' => 'This student is already assigned to another seat.'])
+                ->withErrors(['student_id' => 'This student already has another override for this seating plan.'])
                 ->withInput();
         }
 
@@ -156,6 +191,7 @@ class SeatingOverrideController extends Controller
             'room_id' => $request->room_id,
             'seat_number' => $request->seat_number,
             'reason' => $request->reason,
+            'created_by' => $request->created_by,
         ]);
 
         return redirect()->route('seating.overrides.index')
@@ -164,6 +200,9 @@ class SeatingOverrideController extends Controller
 
     /**
      * Remove the specified resource from storage.
+     *
+     * @param  \App\Models\SeatingOverride  $override
+     * @return \Illuminate\Http\Response
      */
     public function destroy(SeatingOverride $override)
     {

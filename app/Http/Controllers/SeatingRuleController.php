@@ -10,6 +10,8 @@ class SeatingRuleController extends Controller
 {
     /**
      * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
      */
     public function index()
     {
@@ -19,6 +21,8 @@ class SeatingRuleController extends Controller
 
     /**
      * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
      */
     public function create()
     {
@@ -27,6 +31,9 @@ class SeatingRuleController extends Controller
 
     /**
      * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
     {
@@ -34,9 +41,9 @@ class SeatingRuleController extends Controller
             'name' => 'required|string|max:255',
             'type' => 'required|string|in:alternate_courses,distance,priority',
             'description' => 'nullable|string',
-            'parameters' => 'nullable|json',
+            'priority' => 'required|integer|min:1',
             'is_active' => 'boolean',
-            'priority' => 'integer|min:0',
+            'parameters' => 'nullable|json',
         ]);
 
         if ($validator->fails()) {
@@ -45,13 +52,34 @@ class SeatingRuleController extends Controller
                 ->withInput();
         }
 
-        $rule = SeatingRule::create([
+        // Parse parameters JSON if provided
+        $parameters = null;
+        if ($request->has('parameters') && !empty($request->parameters)) {
+            $parameters = json_decode($request->parameters, true);
+            
+            // Validate parameters based on rule type
+            if ($request->type == 'alternate_courses' && (!isset($parameters['min_distance']) || !is_numeric($parameters['min_distance']))) {
+                return redirect()->back()
+                    ->withErrors(['parameters' => 'For alternate courses rule, min_distance parameter is required and must be numeric.'])
+                    ->withInput();
+            } elseif ($request->type == 'distance' && (!isset($parameters['distance']) || !is_numeric($parameters['distance']))) {
+                return redirect()->back()
+                    ->withErrors(['parameters' => 'For distance rule, distance parameter is required and must be numeric.'])
+                    ->withInput();
+            } elseif ($request->type == 'priority' && (!isset($parameters['seats_per_row']) || !is_numeric($parameters['seats_per_row']))) {
+                return redirect()->back()
+                    ->withErrors(['parameters' => 'For priority rule, seats_per_row parameter is required and must be numeric.'])
+                    ->withInput();
+            }
+        }
+
+        SeatingRule::create([
             'name' => $request->name,
             'type' => $request->type,
             'description' => $request->description,
-            'parameters' => $request->parameters ? json_decode($request->parameters, true) : null,
+            'parameters' => $parameters,
+            'priority' => $request->priority,
             'is_active' => $request->has('is_active'),
-            'priority' => $request->priority ?? 0,
         ]);
 
         return redirect()->route('seating.rules.index')
@@ -60,6 +88,9 @@ class SeatingRuleController extends Controller
 
     /**
      * Display the specified resource.
+     *
+     * @param  \App\Models\SeatingRule  $rule
+     * @return \Illuminate\Http\Response
      */
     public function show(SeatingRule $rule)
     {
@@ -68,6 +99,9 @@ class SeatingRuleController extends Controller
 
     /**
      * Show the form for editing the specified resource.
+     *
+     * @param  \App\Models\SeatingRule  $rule
+     * @return \Illuminate\Http\Response
      */
     public function edit(SeatingRule $rule)
     {
@@ -76,6 +110,10 @@ class SeatingRuleController extends Controller
 
     /**
      * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\SeatingRule  $rule
+     * @return \Illuminate\Http\Response
      */
     public function update(Request $request, SeatingRule $rule)
     {
@@ -83,9 +121,9 @@ class SeatingRuleController extends Controller
             'name' => 'required|string|max:255',
             'type' => 'required|string|in:alternate_courses,distance,priority',
             'description' => 'nullable|string',
-            'parameters' => 'nullable|json',
+            'priority' => 'required|integer|min:1',
             'is_active' => 'boolean',
-            'priority' => 'integer|min:0',
+            'parameters' => 'nullable|json',
         ]);
 
         if ($validator->fails()) {
@@ -94,13 +132,34 @@ class SeatingRuleController extends Controller
                 ->withInput();
         }
 
+        // Parse parameters JSON if provided
+        $parameters = null;
+        if ($request->has('parameters') && !empty($request->parameters)) {
+            $parameters = json_decode($request->parameters, true);
+            
+            // Validate parameters based on rule type
+            if ($request->type == 'alternate_courses' && (!isset($parameters['min_distance']) || !is_numeric($parameters['min_distance']))) {
+                return redirect()->back()
+                    ->withErrors(['parameters' => 'For alternate courses rule, min_distance parameter is required and must be numeric.'])
+                    ->withInput();
+            } elseif ($request->type == 'distance' && (!isset($parameters['distance']) || !is_numeric($parameters['distance']))) {
+                return redirect()->back()
+                    ->withErrors(['parameters' => 'For distance rule, distance parameter is required and must be numeric.'])
+                    ->withInput();
+            } elseif ($request->type == 'priority' && (!isset($parameters['seats_per_row']) || !is_numeric($parameters['seats_per_row']))) {
+                return redirect()->back()
+                    ->withErrors(['parameters' => 'For priority rule, seats_per_row parameter is required and must be numeric.'])
+                    ->withInput();
+            }
+        }
+
         $rule->update([
             'name' => $request->name,
             'type' => $request->type,
             'description' => $request->description,
-            'parameters' => $request->parameters ? json_decode($request->parameters, true) : null,
+            'parameters' => $parameters,
+            'priority' => $request->priority,
             'is_active' => $request->has('is_active'),
-            'priority' => $request->priority ?? 0,
         ]);
 
         return redirect()->route('seating.rules.index')
@@ -109,6 +168,9 @@ class SeatingRuleController extends Controller
 
     /**
      * Remove the specified resource from storage.
+     *
+     * @param  \App\Models\SeatingRule  $rule
+     * @return \Illuminate\Http\Response
      */
     public function destroy(SeatingRule $rule)
     {

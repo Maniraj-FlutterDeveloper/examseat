@@ -11,6 +11,8 @@ class StudentPriorityController extends Controller
 {
     /**
      * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
      */
     public function index()
     {
@@ -20,6 +22,8 @@ class StudentPriorityController extends Controller
 
     /**
      * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
      */
     public function create()
     {
@@ -29,15 +33,20 @@ class StudentPriorityController extends Controller
 
     /**
      * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'student_id' => 'required|exists:students,id',
-            'priority_level' => 'required|integer|min:1',
-            'reason' => 'required|string|max:255',
-            'notes' => 'nullable|string',
-            'valid_until' => 'nullable|date',
+            'priority_type' => 'required|string|in:disability,medical,other',
+            'priority_level' => 'required|integer|min:1|max:10',
+            'description' => 'nullable|string',
+            'requirements' => 'nullable|string',
+            'valid_until' => 'nullable|date|after:today',
+            'is_verified' => 'boolean',
         ]);
 
         if ($validator->fails()) {
@@ -46,12 +55,25 @@ class StudentPriorityController extends Controller
                 ->withInput();
         }
 
-        $priority = StudentPriority::create([
+        // Check if student already has a priority of the same type
+        $existingPriority = StudentPriority::where('student_id', $request->student_id)
+            ->where('priority_type', $request->priority_type)
+            ->first();
+
+        if ($existingPriority) {
+            return redirect()->back()
+                ->withErrors(['student_id' => 'This student already has a priority of this type.'])
+                ->withInput();
+        }
+
+        StudentPriority::create([
             'student_id' => $request->student_id,
+            'priority_type' => $request->priority_type,
             'priority_level' => $request->priority_level,
-            'reason' => $request->reason,
-            'notes' => $request->notes,
+            'description' => $request->description,
+            'requirements' => $request->requirements,
             'valid_until' => $request->valid_until,
+            'is_verified' => $request->has('is_verified'),
         ]);
 
         return redirect()->route('seating.priorities.index')
@@ -60,6 +82,9 @@ class StudentPriorityController extends Controller
 
     /**
      * Display the specified resource.
+     *
+     * @param  \App\Models\StudentPriority  $priority
+     * @return \Illuminate\Http\Response
      */
     public function show(StudentPriority $priority)
     {
@@ -68,6 +93,9 @@ class StudentPriorityController extends Controller
 
     /**
      * Show the form for editing the specified resource.
+     *
+     * @param  \App\Models\StudentPriority  $priority
+     * @return \Illuminate\Http\Response
      */
     public function edit(StudentPriority $priority)
     {
@@ -77,15 +105,21 @@ class StudentPriorityController extends Controller
 
     /**
      * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\StudentPriority  $priority
+     * @return \Illuminate\Http\Response
      */
     public function update(Request $request, StudentPriority $priority)
     {
         $validator = Validator::make($request->all(), [
             'student_id' => 'required|exists:students,id',
-            'priority_level' => 'required|integer|min:1',
-            'reason' => 'required|string|max:255',
-            'notes' => 'nullable|string',
-            'valid_until' => 'nullable|date',
+            'priority_type' => 'required|string|in:disability,medical,other',
+            'priority_level' => 'required|integer|min:1|max:10',
+            'description' => 'nullable|string',
+            'requirements' => 'nullable|string',
+            'valid_until' => 'nullable|date|after:today',
+            'is_verified' => 'boolean',
         ]);
 
         if ($validator->fails()) {
@@ -94,12 +128,26 @@ class StudentPriorityController extends Controller
                 ->withInput();
         }
 
+        // Check if student already has a priority of the same type (excluding this one)
+        $existingPriority = StudentPriority::where('student_id', $request->student_id)
+            ->where('priority_type', $request->priority_type)
+            ->where('id', '!=', $priority->id)
+            ->first();
+
+        if ($existingPriority) {
+            return redirect()->back()
+                ->withErrors(['student_id' => 'This student already has another priority of this type.'])
+                ->withInput();
+        }
+
         $priority->update([
             'student_id' => $request->student_id,
+            'priority_type' => $request->priority_type,
             'priority_level' => $request->priority_level,
-            'reason' => $request->reason,
-            'notes' => $request->notes,
+            'description' => $request->description,
+            'requirements' => $request->requirements,
             'valid_until' => $request->valid_until,
+            'is_verified' => $request->has('is_verified'),
         ]);
 
         return redirect()->route('seating.priorities.index')
@@ -108,6 +156,9 @@ class StudentPriorityController extends Controller
 
     /**
      * Remove the specified resource from storage.
+     *
+     * @param  \App\Models\StudentPriority  $priority
+     * @return \Illuminate\Http\Response
      */
     public function destroy(StudentPriority $priority)
     {
