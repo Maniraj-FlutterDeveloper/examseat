@@ -4,11 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class BloomsTaxonomy extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     /**
      * The table associated with the model.
@@ -23,9 +22,9 @@ class BloomsTaxonomy extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'level_name',
+        'name',
         'description',
-        'order',
+        'level',
         'is_active',
     ];
 
@@ -35,15 +34,46 @@ class BloomsTaxonomy extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'order' => 'integer',
         'is_active' => 'boolean',
+        'level' => 'integer',
     ];
 
     /**
-     * Get the questions for the Bloom's taxonomy level.
+     * Get the questions that use this Bloom's Taxonomy level.
      */
     public function questions()
     {
-        return $this->hasMany(Question::class, 'bloom_id');
+        return $this->hasMany(Question::class, 'blooms_taxonomy_id');
+    }
+
+    /**
+     * Get the blueprint conditions that use this Bloom's Taxonomy level.
+     */
+    public function blueprintConditions()
+    {
+        return $this->hasMany(BlueprintCondition::class, 'blooms_taxonomy_id');
+    }
+
+    /**
+     * Scope a query to only include active Bloom's Taxonomy levels.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope a query to order Bloom's Taxonomy levels by their level field.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('level');
     }
 }
+
