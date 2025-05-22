@@ -4,11 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Unit extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     /**
      * The attributes that are mass assignable.
@@ -17,8 +16,8 @@ class Unit extends Model
      */
     protected $fillable = [
         'subject_id',
-        'unit_name',
-        'unit_code',
+        'name',
+        'code',
         'description',
         'order',
         'is_active',
@@ -30,8 +29,8 @@ class Unit extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'order' => 'integer',
         'is_active' => 'boolean',
+        'order' => 'integer',
     ];
 
     /**
@@ -49,4 +48,35 @@ class Unit extends Model
     {
         return $this->hasMany(Topic::class);
     }
+
+    /**
+     * Get all questions for the unit through topics.
+     */
+    public function questions()
+    {
+        return $this->hasManyThrough(Question::class, Topic::class);
+    }
+
+    /**
+     * Scope a query to only include active units.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope a query to order units by their order field.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('order');
+    }
 }
+
