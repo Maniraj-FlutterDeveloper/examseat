@@ -5,428 +5,358 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'Exam Seat Management') }}</title>
+    <title>@yield('title', 'Exam Seat Management') | {{ config('app.name', 'ExamSeat') }}</title>
 
     <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="dns-prefetch" href="//fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet">
 
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Custom CSS -->
+    <!-- Styles -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.10.22/css/dataTables.bootstrap4.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/css/select2.min.css" rel="stylesheet">
+    <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+
     <style>
         :root {
-            --primary-color: #0a2463; /* Navy Blue */
+            --primary-color: #0a2463;
             --secondary-color: #3e92cc;
-            --accent-color: #d8315b;
+            --accent-color: #1e5f74;
             --light-color: #fffaff;
-            --dark-color: #1e1b18;
+            --dark-color: #1c1c1c;
         }
-        
+
         body {
-            font-family: 'Roboto', sans-serif;
+            font-family: 'Nunito', sans-serif;
             background-color: #f8f9fa;
         }
-        
+
         .navbar {
             background-color: var(--primary-color);
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
-        
+
         .navbar-brand {
             font-weight: 700;
-            color: white !important;
+            color: var(--light-color) !important;
         }
-        
+
         .nav-link {
-            color: rgba(255, 255, 255, 0.85) !important;
+            color: var(--light-color) !important;
+            font-weight: 600;
             transition: all 0.3s;
         }
-        
+
         .nav-link:hover {
-            color: white !important;
+            color: rgba(255, 255, 255, 0.8) !important;
         }
-        
-        .nav-link.active {
-            color: white !important;
-            font-weight: 500;
+
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
-        
-        .sidebar {
-            background-color: white;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            height: calc(100vh - 56px);
-            position: fixed;
-            top: 56px;
-            left: 0;
-            width: 250px;
-            z-index: 1000;
-            padding-top: 20px;
-            overflow-y: auto;
+
+        .dropdown-item:hover {
+            background-color: var(--secondary-color);
+            color: var(--light-color);
         }
-        
-        .sidebar .nav-link {
-            color: var(--dark-color) !important;
-            padding: 10px 20px;
-            border-radius: 5px;
-            margin: 2px 10px;
-        }
-        
-        .sidebar .nav-link:hover {
-            background-color: rgba(10, 36, 99, 0.1);
-        }
-        
-        .sidebar .nav-link.active {
-            background-color: var(--primary-color);
-            color: white !important;
-        }
-        
-        .sidebar .nav-link i {
-            margin-right: 10px;
-            width: 20px;
-            text-align: center;
-        }
-        
-        .sidebar-heading {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #6c757d;
-            font-weight: 700;
-            padding: 10px 20px;
-            margin-top: 10px;
-        }
-        
-        .content {
-            margin-left: 250px;
-            padding: 20px;
-            min-height: calc(100vh - 56px);
-        }
-        
+
         .card {
             border: none;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s, box-shadow 0.3s;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
         }
-        
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-        
+
         .card-header {
-            background-color: white;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            font-weight: 500;
+            border-radius: 8px 8px 0 0 !important;
+            font-weight: 600;
         }
-        
+
+        .btn {
+            border-radius: 4px;
+            font-weight: 600;
+            padding: 8px 16px;
+            transition: all 0.3s;
+        }
+
         .btn-primary {
             background-color: var(--primary-color);
             border-color: var(--primary-color);
         }
-        
+
         .btn-primary:hover {
-            background-color: #081d4f;
-            border-color: #081d4f;
+            background-color: #081f54;
+            border-color: #081f54;
         }
-        
-        .btn-outline-primary {
-            color: var(--primary-color);
-            border-color: var(--primary-color);
+
+        .btn-success {
+            background-color: #28a745;
+            border-color: #28a745;
         }
-        
-        .btn-outline-primary:hover {
+
+        .btn-success:hover {
+            background-color: #218838;
+            border-color: #1e7e34;
+        }
+
+        .table th {
+            font-weight: 600;
+            background-color: #f8f9fa;
+        }
+
+        .badge {
+            font-weight: 600;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+
+        .form-control {
+            border-radius: 4px;
+            border: 1px solid #ced4da;
+            padding: 8px 12px;
+        }
+
+        .form-control:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.2rem rgba(62, 146, 204, 0.25);
+        }
+
+        .sidebar {
             background-color: var(--primary-color);
-            border-color: var(--primary-color);
+            min-height: calc(100vh - 56px);
+            padding-top: 20px;
         }
-        
-        .page-title {
-            font-weight: 700;
-            color: var(--primary-color);
-            margin-bottom: 20px;
+
+        .sidebar-link {
+            color: var(--light-color);
+            padding: 10px 15px;
+            display: block;
+            text-decoration: none;
+            transition: all 0.3s;
         }
-        
-        .stats-card {
-            border-left: 4px solid var(--primary-color);
+
+        .sidebar-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--light-color);
+            text-decoration: none;
         }
-        
-        .stats-card .card-body {
-            padding: 15px;
+
+        .sidebar-link.active {
+            background-color: var(--secondary-color);
+            color: var(--light-color);
+            border-left: 4px solid var(--light-color);
         }
-        
-        .stats-card .stats-icon {
-            font-size: 2rem;
-            color: var(--primary-color);
+
+        .content-wrapper {
+            padding: 20px;
         }
-        
-        .stats-card .stats-number {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--dark-color);
-        }
-        
-        .stats-card .stats-text {
-            font-size: 0.9rem;
-            color: #6c757d;
-        }
-        
-        .table-responsive {
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        
-        .table {
-            margin-bottom: 0;
-        }
-        
-        .table thead th {
+
+        .footer {
             background-color: var(--primary-color);
-            color: white;
-            font-weight: 500;
+            color: var(--light-color);
+            padding: 15px 0;
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* DataTables Customization */
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+            background: var(--secondary-color);
+            color: white !important;
             border: none;
         }
-        
-        .table-striped tbody tr:nth-of-type(odd) {
-            background-color: rgba(10, 36, 99, 0.05);
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+            background: var(--primary-color);
+            color: white !important;
+            border: none;
         }
-        
-        .pagination {
-            margin-top: 20px;
+
+        /* Select2 Customization */
+        .select2-container--default .select2-selection--single {
+            height: 38px;
+            border: 1px solid #ced4da;
         }
-        
-        .page-item.active .page-link {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 38px;
         }
-        
-        .page-link {
-            color: var(--primary-color);
-        }
-        
-        .form-control:focus, .form-select:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 0.25rem rgba(10, 36, 99, 0.25);
-        }
-        
-        .alert {
-            border-radius: 10px;
-        }
-        
-        /* Animation for alerts */
-        .fade-in {
-            animation: fadeIn 0.5s;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 100%;
-                height: auto;
-                position: relative;
-                top: 0;
-                padding-top: 10px;
-                display: none;
-            }
-            
-            .content {
-                margin-left: 0;
-            }
-            
-            .sidebar.show {
-                display: block;
-            }
-            
-            .toggle-sidebar {
-                display: block !important;
-            }
-        }
-        
-        .toggle-sidebar {
-            display: none;
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 36px;
         }
     </style>
 
-    @stack('styles')
+    @yield('styles')
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{{ url('/') }}">
-                <i class="fas fa-graduation-cap me-2"></i>
-                {{ config('app.name', 'Exam Seat Management') }}
-            </a>
-            
-            <button class="navbar-toggler toggle-sidebar" type="button">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav ms-auto">
-                    @guest
+    <div id="app">
+        <nav class="navbar navbar-expand-md navbar-dark">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="{{ url('/') }}">
+                    <i class="fas fa-graduation-cap mr-2"></i>{{ config('app.name', 'ExamSeat') }}
+                </a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <!-- Left Side Of Navbar -->
+                    <ul class="navbar-nav mr-auto">
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
-                        </li>
-                    @else
-                        <li class="nav-item dropdown">
-                            <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                                {{ Auth::user()->name }}
+                            <a class="nav-link" href="{{ route('home') }}">
+                                <i class="fas fa-tachometer-alt mr-1"></i>Dashboard
                             </a>
-
-                            <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                <a class="dropdown-item" href="{{ route('logout') }}"
-                                   onclick="event.preventDefault();
-                                                 document.getElementById('logout-form').submit();">
-                                    {{ __('Logout') }}
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a id="seatPlanDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                                <i class="fas fa-chair mr-1"></i>Seat Plan
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="seatPlanDropdown">
+                                <a class="dropdown-item" href="{{ route('seating-plans.index') }}">
+                                    <i class="fas fa-list mr-1"></i>Seating Plans
                                 </a>
-
-                                <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                                    @csrf
-                                </form>
+                                <a class="dropdown-item" href="{{ route('blocks.index') }}">
+                                    <i class="fas fa-building mr-1"></i>Blocks
+                                </a>
+                                <a class="dropdown-item" href="{{ route('rooms.index') }}">
+                                    <i class="fas fa-door-open mr-1"></i>Rooms
+                                </a>
+                                <a class="dropdown-item" href="{{ route('courses.index') }}">
+                                    <i class="fas fa-book mr-1"></i>Courses
+                                </a>
+                                <a class="dropdown-item" href="{{ route('students.index') }}">
+                                    <i class="fas fa-user-graduate mr-1"></i>Students
+                                </a>
+                                <a class="dropdown-item" href="{{ route('invigilators.index') }}">
+                                    <i class="fas fa-user-tie mr-1"></i>Invigilators
+                                </a>
+                                <a class="dropdown-item" href="{{ route('seating-rules.index') }}">
+                                    <i class="fas fa-cogs mr-1"></i>Seating Rules
+                                </a>
                             </div>
                         </li>
-                    @endguest
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <div class="container-fluid">
-        <div class="row">
-            @auth
-                <div class="sidebar">
-                    <div class="sidebar-heading">Seat Plan</div>
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
-                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                        <li class="nav-item dropdown">
+                            <a id="questionBankDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                                <i class="fas fa-question-circle mr-1"></i>Question Bank
                             </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('blocks.*') ? 'active' : '' }}" href="{{ route('blocks.index') }}">
-                                <i class="fas fa-building"></i> Blocks
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('rooms.*') ? 'active' : '' }}" href="{{ route('rooms.index') }}">
-                                <i class="fas fa-door-open"></i> Rooms
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('courses.*') ? 'active' : '' }}" href="{{ route('courses.index') }}">
-                                <i class="fas fa-book"></i> Courses
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('students.*') ? 'active' : '' }}" href="{{ route('students.index') }}">
-                                <i class="fas fa-user-graduate"></i> Students
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('invigilators.*') ? 'active' : '' }}" href="{{ route('invigilators.index') }}">
-                                <i class="fas fa-user-tie"></i> Invigilators
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('seating-plans.*') ? 'active' : '' }}" href="{{ route('seating-plans.index') }}">
-                                <i class="fas fa-chair"></i> Seating Plans
-                            </a>
+                            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="questionBankDropdown">
+                                <a class="dropdown-item" href="#">
+                                    <i class="fas fa-book-open mr-1"></i>Subjects
+                                </a>
+                                <a class="dropdown-item" href="#">
+                                    <i class="fas fa-layer-group mr-1"></i>Units
+                                </a>
+                                <a class="dropdown-item" href="#">
+                                    <i class="fas fa-bookmark mr-1"></i>Topics
+                                </a>
+                                <a class="dropdown-item" href="#">
+                                    <i class="fas fa-question mr-1"></i>Questions
+                                </a>
+                                <a class="dropdown-item" href="#">
+                                    <i class="fas fa-brain mr-1"></i>Bloom's Taxonomy
+                                </a>
+                                <a class="dropdown-item" href="#">
+                                    <i class="fas fa-file-alt mr-1"></i>Question Papers
+                                </a>
+                            </div>
                         </li>
                     </ul>
-                    
-                    <div class="sidebar-heading">Question Bank</div>
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('subjects.*') ? 'active' : '' }}" href="{{ route('subjects.index') }}">
-                                <i class="fas fa-book-open"></i> Subjects
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('units.*') ? 'active' : '' }}" href="{{ route('units.index') }}">
-                                <i class="fas fa-layer-group"></i> Units
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('topics.*') ? 'active' : '' }}" href="{{ route('topics.index') }}">
-                                <i class="fas fa-list"></i> Topics
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('blooms-taxonomy.*') ? 'active' : '' }}" href="{{ route('blooms-taxonomy.index') }}">
-                                <i class="fas fa-brain"></i> Bloom's Taxonomy
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('questions.*') ? 'active' : '' }}" href="{{ route('questions.index') }}">
-                                <i class="fas fa-question-circle"></i> Questions
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('blueprints.*') ? 'active' : '' }}" href="{{ route('blueprints.index') }}">
-                                <i class="fas fa-drafting-compass"></i> Blueprints
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('question-papers.*') ? 'active' : '' }}" href="{{ route('question-papers.index') }}">
-                                <i class="fas fa-file-alt"></i> Question Papers
-                            </a>
-                        </li>
+
+                    <!-- Right Side Of Navbar -->
+                    <ul class="navbar-nav ml-auto">
+                        <!-- Authentication Links -->
+                        @guest
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('login') }}">
+                                    <i class="fas fa-sign-in-alt mr-1"></i>{{ __('Login') }}
+                                </a>
+                            </li>
+                        @else
+                            <li class="nav-item dropdown">
+                                <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                                    <i class="fas fa-user-circle mr-1"></i>{{ Auth::user()->name }}
+                                </a>
+
+                                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                                    <a class="dropdown-item" href="#">
+                                        <i class="fas fa-user-cog mr-1"></i>Profile
+                                    </a>
+                                    <a class="dropdown-item" href="{{ route('logout') }}"
+                                       onclick="event.preventDefault();
+                                                     document.getElementById('logout-form').submit();">
+                                        <i class="fas fa-sign-out-alt mr-1"></i>{{ __('Logout') }}
+                                    </a>
+
+                                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                                        @csrf
+                                    </form>
+                                </div>
+                            </li>
+                        @endguest
                     </ul>
                 </div>
-            @endauth
+            </div>
+        </nav>
 
-            <main class="@auth content @endauth">
-                @if(session('success'))
-                    <div class="alert alert-success fade-in">
-                        {{ session('success') }}
+        <main class="py-4">
+            @yield('content')
+        </main>
+
+        <footer class="footer">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-12">
+                        <p class="mb-0">&copy; {{ date('Y') }} {{ config('app.name', 'ExamSeat') }}. All rights reserved.</p>
                     </div>
-                @endif
-
-                @if(session('error'))
-                    <div class="alert alert-danger fade-in">
-                        {{ session('error') }}
-                    </div>
-                @endif
-
-                @yield('content')
-            </main>
-        </div>
+                </div>
+            </div>
+        </footer>
     </div>
 
-    <!-- Bootstrap Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.22/js/dataTables.bootstrap4.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
+    <script src="{{ asset('js/app.js') }}" defer></script>
+
     <script>
-        // Toggle sidebar on mobile
-        document.querySelector('.toggle-sidebar')?.addEventListener('click', function() {
-            document.querySelector('.sidebar').classList.toggle('show');
-        });
-        
-        // Auto-hide alerts after 5 seconds
-        setTimeout(function() {
-            const alerts = document.querySelectorAll('.alert');
-            alerts.forEach(function(alert) {
-                const bsAlert = new bootstrap.Alert(alert);
-                bsAlert.close();
+        $(document).ready(function() {
+            // Initialize Select2
+            $('.select2').select2({
+                theme: 'bootstrap4'
             });
-        }, 5000);
+
+            // Tooltip initialization
+            $('[data-toggle="tooltip"]').tooltip();
+
+            // Active link detection
+            const currentUrl = window.location.href;
+            $('.nav-link, .dropdown-item').each(function() {
+                if (currentUrl.includes($(this).attr('href'))) {
+                    $(this).addClass('active');
+                    $(this).closest('.nav-item.dropdown').find('.nav-link').addClass('active');
+                }
+            });
+        });
     </script>
 
-    @stack('scripts')
+    @yield('scripts')
 </body>
 </html>
 

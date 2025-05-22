@@ -10,45 +10,51 @@ use Illuminate\Support\Facades\Validator;
 class RoomController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display a listing of the rooms.
      *
-     * @return \Illuminate\View\View
+     * @return \Illuminate\Http\Response
      */
     public function index()
     {
-        $rooms = Room::with('block')->paginate(10);
-        return view('rooms.index', compact('rooms'));
+        $rooms = Room::with('block')->get();
+        return view('seat-plan.rooms.index', compact('rooms'));
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Show the form for creating a new room.
      *
-     * @return \Illuminate\View\View
+     * @return \Illuminate\Http\Response
      */
     public function create()
     {
-        $blocks = Block::all();
-        return view('rooms.create', compact('blocks'));
+        $blocks = Block::active()->get();
+        return view('seat-plan.rooms.create', compact('blocks'));
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store a newly created room in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse
+     * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'block_id' => 'required|exists:blocks,id',
-            'room_number' => 'required|string|max:50',
+            'name' => 'required|string|max:255',
+            'code' => 'required|string|max:50|unique:rooms',
             'capacity' => 'required|integer|min:1',
+            'rows' => 'nullable|integer|min:1',
+            'columns' => 'nullable|integer|min:1',
             'description' => 'nullable|string',
+            'floor' => 'nullable|string|max:50',
+            'has_projector' => 'boolean',
+            'has_computer' => 'boolean',
             'is_active' => 'boolean',
         ]);
 
         if ($validator->fails()) {
-            return redirect()->route('rooms.create')
+            return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
         }
@@ -60,48 +66,54 @@ class RoomController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Display the specified room.
      *
      * @param  \App\Models\Room  $room
-     * @return \Illuminate\View\View
+     * @return \Illuminate\Http\Response
      */
     public function show(Room $room)
     {
-        $room->load('block', 'seatingPlans', 'invigilatorAssignments.invigilator');
-        return view('rooms.show', compact('room'));
+        $room->load('block');
+        return view('seat-plan.rooms.show', compact('room'));
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Show the form for editing the specified room.
      *
      * @param  \App\Models\Room  $room
-     * @return \Illuminate\View\View
+     * @return \Illuminate\Http\Response
      */
     public function edit(Room $room)
     {
-        $blocks = Block::all();
-        return view('rooms.edit', compact('room', 'blocks'));
+        $blocks = Block::active()->get();
+        return view('seat-plan.rooms.edit', compact('room', 'blocks'));
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update the specified room in storage.
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  \App\Models\Room  $room
-     * @return \Illuminate\Http\RedirectResponse
+     * @return \Illuminate\Http\Response
      */
     public function update(Request $request, Room $room)
     {
         $validator = Validator::make($request->all(), [
             'block_id' => 'required|exists:blocks,id',
-            'room_number' => 'required|string|max:50',
+            'name' => 'required|string|max:255',
+            'code' => 'required|string|max:50|unique:rooms,code,' . $room->id,
             'capacity' => 'required|integer|min:1',
+            'rows' => 'nullable|integer|min:1',
+            'columns' => 'nullable|integer|min:1',
             'description' => 'nullable|string',
+            'floor' => 'nullable|string|max:50',
+            'has_projector' => 'boolean',
+            'has_computer' => 'boolean',
             'is_active' => 'boolean',
         ]);
 
         if ($validator->fails()) {
-            return redirect()->route('rooms.edit', $room->id)
+            return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
         }
@@ -113,17 +125,17 @@ class RoomController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove the specified room from storage.
      *
      * @param  \App\Models\Room  $room
-     * @return \Illuminate\Http\RedirectResponse
+     * @return \Illuminate\Http\Response
      */
     public function destroy(Room $room)
     {
-        // Check if room has seating plans or invigilator assignments
-        if ($room->seatingPlans()->count() > 0 || $room->invigilatorAssignments()->count() > 0) {
+        // Check if the room has seating assignments
+        if ($room->seatingAssignments()->count() > 0) {
             return redirect()->route('rooms.index')
-                ->with('error', 'Room cannot be deleted because it has seating plans or invigilator assignments associated with it.');
+                ->with('error', 'Cannot delete room because it has associated seating assignments.');
         }
 
         $room->delete();
@@ -131,4 +143,43 @@ class RoomController extends Controller
         return redirect()->route('rooms.index')
             ->with('success', 'Room deleted successfully.');
     }
+
+    /**
+     * Toggle the active status of the specified room.
+     *
+     * @param  \App\Models\Room  $room
+     * @return \Illuminate\Http\Response
+     */
+    public function toggleActive(Room $room)
+    {
+        $room->is_active = !$room->is_active;
+        $room->save();
+
+        return redirect()->route('rooms.index')
+            ->with('success', 'Room status updated successfully.');
+    }
+
+    /**
+     * Display rooms by block.
+     *
+     * @param  \App\Models\Block  $block
+     * @return \Illuminate\Http\Response
+     */
+    public function roomsByBlock(Block $block)
+    {
+        $rooms = Room::where('block_id', $block->id)->get();
+        return response()->json($rooms);
+    }
+
+    /**
+     * Display the room layout.
+     *
+     * @param  \App\Models\Room  $room
+     * @return \Illuminate\Http\Response
+     */
+    public function layout(Room $room)
+    {
+        return view('seat-plan.rooms.layout', compact('room'));
+    }
 }
+
