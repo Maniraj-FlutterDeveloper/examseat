@@ -4,11 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Student extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     /**
      * The attributes that are mass assignable.
@@ -20,6 +21,8 @@ class Student extends Model
         'roll_number',
         'name',
         'email',
+        'phone',
+        'gender',
         'year',
         'section',
         'has_disability',
@@ -41,16 +44,81 @@ class Student extends Model
     /**
      * Get the course that owns the student.
      */
-    public function course()
+    public function course(): BelongsTo
     {
         return $this->belongsTo(Course::class);
     }
 
     /**
-     * Get the seating plans for the student.
+     * Get the seating assignments for the student.
      */
-    public function seatingPlans()
+    public function seatingAssignments(): HasMany
     {
-        return $this->hasMany(SeatingPlan::class);
+        return $this->hasMany(SeatingAssignment::class);
+    }
+
+    /**
+     * Scope a query to only include active students.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope a query to filter students by course.
+     */
+    public function scopeInCourse($query, $courseId)
+    {
+        return $query->where('course_id', $courseId);
+    }
+
+    /**
+     * Scope a query to filter students by year.
+     */
+    public function scopeInYear($query, $year)
+    {
+        return $query->where('year', $year);
+    }
+
+    /**
+     * Scope a query to filter students by section.
+     */
+    public function scopeInSection($query, $section)
+    {
+        return $query->where('section', $section);
+    }
+
+    /**
+     * Scope a query to filter students with disabilities.
+     */
+    public function scopeWithDisability($query)
+    {
+        return $query->where('has_disability', true);
+    }
+
+    /**
+     * Get the full name with roll number.
+     */
+    public function getFullNameWithRollAttribute(): string
+    {
+        return "{$this->name} ({$this->roll_number})";
+    }
+
+    /**
+     * Get the course name.
+     */
+    public function getCourseNameAttribute(): string
+    {
+        return $this->course->name;
+    }
+
+    /**
+     * Get the year and section combined.
+     */
+    public function getYearSectionAttribute(): string
+    {
+        return "Year {$this->year}" . ($this->section ? " - Section {$this->section}" : "");
     }
 }
+

@@ -9,41 +9,44 @@ use Illuminate\Support\Facades\Validator;
 class BlockController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display a listing of the blocks.
      *
-     * @return \Illuminate\View\View
+     * @return \Illuminate\Http\Response
      */
     public function index()
     {
-        $blocks = Block::withCount('rooms')->paginate(10);
-        return view('blocks.index', compact('blocks'));
+        $blocks = Block::with('rooms')->get();
+        return view('seat-plan.blocks.index', compact('blocks'));
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Show the form for creating a new block.
      *
-     * @return \Illuminate\View\View
+     * @return \Illuminate\Http\Response
      */
     public function create()
     {
-        return view('blocks.create');
+        return view('seat-plan.blocks.create');
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store a newly created block in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse
+     * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'block_name' => 'required|string|max:255|unique:blocks',
+            'name' => 'required|string|max:255',
+            'code' => 'required|string|max:50|unique:blocks',
             'description' => 'nullable|string',
+            'location' => 'nullable|string|max:255',
+            'is_active' => 'boolean',
         ]);
 
         if ($validator->fails()) {
-            return redirect()->route('blocks.create')
+            return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
         }
@@ -55,44 +58,47 @@ class BlockController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Display the specified block.
      *
      * @param  \App\Models\Block  $block
-     * @return \Illuminate\View\View
+     * @return \Illuminate\Http\Response
      */
     public function show(Block $block)
     {
         $block->load('rooms');
-        return view('blocks.show', compact('block'));
+        return view('seat-plan.blocks.show', compact('block'));
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Show the form for editing the specified block.
      *
      * @param  \App\Models\Block  $block
-     * @return \Illuminate\View\View
+     * @return \Illuminate\Http\Response
      */
     public function edit(Block $block)
     {
-        return view('blocks.edit', compact('block'));
+        return view('seat-plan.blocks.edit', compact('block'));
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update the specified block in storage.
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  \App\Models\Block  $block
-     * @return \Illuminate\Http\RedirectResponse
+     * @return \Illuminate\Http\Response
      */
     public function update(Request $request, Block $block)
     {
         $validator = Validator::make($request->all(), [
-            'block_name' => 'required|string|max:255|unique:blocks,block_name,' . $block->id,
+            'name' => 'required|string|max:255',
+            'code' => 'required|string|max:50|unique:blocks,code,' . $block->id,
             'description' => 'nullable|string',
+            'location' => 'nullable|string|max:255',
+            'is_active' => 'boolean',
         ]);
 
         if ($validator->fails()) {
-            return redirect()->route('blocks.edit', $block->id)
+            return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
         }
@@ -104,17 +110,17 @@ class BlockController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove the specified block from storage.
      *
      * @param  \App\Models\Block  $block
-     * @return \Illuminate\Http\RedirectResponse
+     * @return \Illuminate\Http\Response
      */
     public function destroy(Block $block)
     {
-        // Check if block has rooms
+        // Check if the block has rooms
         if ($block->rooms()->count() > 0) {
             return redirect()->route('blocks.index')
-                ->with('error', 'Block cannot be deleted because it has rooms associated with it.');
+                ->with('error', 'Cannot delete block because it has associated rooms.');
         }
 
         $block->delete();
@@ -122,4 +128,20 @@ class BlockController extends Controller
         return redirect()->route('blocks.index')
             ->with('success', 'Block deleted successfully.');
     }
+
+    /**
+     * Toggle the active status of the specified block.
+     *
+     * @param  \App\Models\Block  $block
+     * @return \Illuminate\Http\Response
+     */
+    public function toggleActive(Block $block)
+    {
+        $block->is_active = !$block->is_active;
+        $block->save();
+
+        return redirect()->route('blocks.index')
+            ->with('success', 'Block status updated successfully.');
+    }
 }
+

@@ -4,11 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Blueprint extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     /**
      * The attributes that are mass assignable.
@@ -16,12 +15,12 @@ class Blueprint extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'subject_id',
         'name',
         'description',
-        'conditions',
+        'subject_id',
         'total_marks',
-        'duration_minutes',
+        'duration',
+        'structure',
         'is_active',
     ];
 
@@ -31,10 +30,10 @@ class Blueprint extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'conditions' => 'json',
-        'total_marks' => 'decimal:2',
-        'duration_minutes' => 'integer',
         'is_active' => 'boolean',
+        'total_marks' => 'integer',
+        'duration' => 'integer',
+        'structure' => 'array',
     ];
 
     /**
@@ -46,10 +45,63 @@ class Blueprint extends Model
     }
 
     /**
-     * Get the question papers for the blueprint.
+     * Get the conditions for the blueprint.
+     */
+    public function conditions()
+    {
+        return $this->hasMany(BlueprintCondition::class);
+    }
+
+    /**
+     * Get the question papers that use this blueprint.
      */
     public function questionPapers()
     {
         return $this->hasMany(QuestionPaper::class);
     }
+
+    /**
+     * Scope a query to only include active blueprints.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    /**
+     * Calculate the total number of questions in the blueprint.
+     *
+     * @return int
+     */
+    public function getTotalQuestionsAttribute()
+    {
+        return $this->conditions->sum('question_count');
+    }
+
+    /**
+     * Calculate the total marks in the blueprint.
+     *
+     * @return int
+     */
+    public function calculateTotalMarks()
+    {
+        return $this->conditions->sum(function ($condition) {
+            return $condition->question_count * $condition->marks_per_question;
+        });
+    }
+
+    /**
+     * Update the total marks based on conditions.
+     *
+     * @return void
+     */
+    public function updateTotalMarks()
+    {
+        $this->total_marks = $this->calculateTotalMarks();
+        $this->save();
+    }
 }
+
