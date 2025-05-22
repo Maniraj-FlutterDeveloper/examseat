@@ -1,11 +1,25 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\BlockController;
+use App\Http\Controllers\RoomController;
+use App\Http\Controllers\CourseController;
+use App\Http\Controllers\StudentController;
+use App\Http\Controllers\InvigilatorController;
 use App\Http\Controllers\SeatingPlanController;
 use App\Http\Controllers\SeatingRuleController;
 use App\Http\Controllers\StudentPriorityController;
 use App\Http\Controllers\SeatingOverrideController;
 use App\Http\Controllers\SeatingPlanReportController;
+use App\Http\Controllers\QuestionBank\SubjectController;
+use App\Http\Controllers\QuestionBank\UnitController;
+use App\Http\Controllers\QuestionBank\TopicController;
+use App\Http\Controllers\QuestionBank\BloomsTaxonomyController;
+use App\Http\Controllers\QuestionBank\QuestionTypeController;
+use App\Http\Controllers\QuestionBank\QuestionController;
+use App\Http\Controllers\QuestionBank\BlueprintController;
+use App\Http\Controllers\QuestionBank\QuestionPaperController;
 
 /*
 |--------------------------------------------------------------------------
@@ -24,6 +38,25 @@ Route::get('/', function () {
 
 // Seating Plan Module Routes
 Route::prefix('seating')->name('seating.')->group(function () {
+    // Blocks
+    Route::resource('blocks', BlockController::class);
+    Route::post('blocks/{block}/toggle-active', [BlockController::class, 'toggleActive'])->name('blocks.toggle-active');
+    
+    // Rooms
+    Route::resource('rooms', RoomController::class);
+    Route::post('rooms/{room}/toggle-active', [RoomController::class, 'toggleActive'])->name('rooms.toggle-active');
+    
+    // Courses
+    Route::resource('courses', CourseController::class);
+    
+    // Students
+    Route::resource('students', StudentController::class);
+    Route::post('students/import', [StudentController::class, 'import'])->name('students.import');
+    Route::get('students/export', [StudentController::class, 'export'])->name('students.export');
+    
+    // Invigilators
+    Route::resource('invigilators', InvigilatorController::class);
+    
     // Seating Plans
     Route::resource('plans', SeatingPlanController::class);
     Route::get('plans/{seatingPlan}/assignments', [SeatingPlanController::class, 'showAssignments'])->name('plans.assignments');
@@ -59,6 +92,38 @@ Route::prefix('seating')->name('seating.')->group(function () {
         // Incidents
         Route::post('plans/{seatingPlan}/incident', [SeatingPlanReportController::class, 'logIncident'])->name('log-incident');
     });
+});
+
+// Question Bank Module Routes
+Route::prefix('question-bank')->name('question-bank.')->group(function () {
+    // Subjects
+    Route::resource('subjects', SubjectController::class);
+    
+    // Units
+    Route::resource('units', UnitController::class);
+    
+    // Topics
+    Route::resource('topics', TopicController::class);
+    
+    // Bloom's Taxonomy
+    Route::resource('blooms-taxonomy', BloomsTaxonomyController::class);
+    
+    // Question Types
+    Route::resource('question-types', QuestionTypeController::class);
+    
+    // Questions
+    Route::resource('questions', QuestionController::class);
+    Route::post('questions/import', [QuestionController::class, 'import'])->name('questions.import');
+    Route::get('questions/export', [QuestionController::class, 'export'])->name('questions.export');
+    
+    // Blueprints
+    Route::resource('blueprints', BlueprintController::class);
+    
+    // Question Papers
+    Route::resource('question-papers', QuestionPaperController::class);
+    Route::post('question-papers/{blueprint}/generate', [QuestionPaperController::class, 'generate'])->name('question-papers.generate');
+    Route::get('question-papers/{questionPaper}/preview', [QuestionPaperController::class, 'preview'])->name('question-papers.preview');
+    Route::get('question-papers/{questionPaper}/download', [QuestionPaperController::class, 'download'])->name('question-papers.download');
 });
 
 // API Routes for AJAX
@@ -127,11 +192,6 @@ Route::prefix('api')->name('api.')->group(function () {
         $override = \App\Models\SeatingOverride::create($request->all());
         return response()->json($override);
     })->name('create-override');
-});
-
-// Question Bank Module Routes (to be implemented)
-Route::prefix('question-bank')->name('question-bank.')->group(function () {
-    // Placeholder routes for future implementation
 });
 
 // Auth routes
