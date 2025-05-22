@@ -1,0 +1,196 @@
+/**
+ * Seating Layout Styles
+ */
+
+/* Main layout container */
+.seating-layout {
+    margin: 20px 0;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+}
+
+/* Room layout */
+.room-layout {
+    border: 2px solid #333;
+    padding: 20px;
+    margin-bottom: 30px;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Front and back labels */
+.front-label, .back-label {
+    font-weight: bold;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 5px;
+    background-color: #e9ecef;
+    border-radius: 3px;
+    margin: 10px 0;
+}
+
+/* Individual seat box */
+.seat-box {
+    border: 1px solid #ccc;
+    padding: 10px;
+    height: 120px;
+    text-align: center;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    transition: all 0.2s ease-in-out;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Occupied seat */
+.seat-box.occupied {
+    background-color: #d1e7dd;
+    border-color: #badbcc;
+}
+
+/* Empty seat */
+.seat-box.empty {
+    background-color: #f8d7da;
+    border-color: #f5c2c7;
+}
+
+/* Hover effect */
+.seat-box.hover, .seat-box:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+}
+
+/* Selected seat */
+.seat-box.selected {
+    border: 2px solid #0d6efd;
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
+}
+
+/* Highlighted seat (for search) */
+.seat-box.highlight {
+    background-color: #fff3cd;
+    border-color: #ffecb5;
+    animation: pulse 1.5s infinite;
+}
+
+/* Seat number */
+.seat-number {
+    font-weight: bold;
+    margin-bottom: 5px;
+    background-color: #6c757d;
+    color: white;
+    border-radius: 3px;
+    padding: 2px 5px;
+    display: inline-block;
+}
+
+/* Student information */
+.student-info {
+    font-size: 0.85rem;
+    margin-top: 5px;
+}
+
+.student-name {
+    font-weight: bold;
+    margin-bottom: 2px;
+}
+
+.student-roll {
+    color: #6c757d;
+    font-size: 0.8rem;
+}
+
+.student-course {
+    background-color: #e9ecef;
+    border-radius: 3px;
+    padding: 1px 5px;
+    display: inline-block;
+    margin-top: 3px;
+    font-size: 0.75rem;
+}
+
+/* Empty seat text */
+.empty-seat {
+    color: #dc3545;
+    font-style: italic;
+    margin-top: 20px;
+}
+
+/* Room information */
+.room-info {
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: #e9ecef;
+    border-radius: 5px;
+}
+
+/* Controls for the seating layout */
+.seating-controls {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+    border: 1px solid #dee2e6;
+}
+
+/* Selected seat information */
+#selected-seat-info {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #e9ecef;
+    border-radius: 5px;
+    display: none;
+}
+
+/* Print styles */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    
+    .seating-layout {
+        margin: 0;
+        padding: 0;
+        background-color: white;
+    }
+    
+    .room-layout {
+        page-break-inside: avoid;
+        border: 1px solid #333;
+        box-shadow: none;
+    }
+    
+    .seat-box {
+        border: 1px solid #333;
+        height: auto;
+        min-height: 80px;
+    }
+    
+    .seat-box.hover, .seat-box:hover {
+        transform: none;
+        box-shadow: none;
+    }
+    
+    .seat-box.selected {
+        border: 1px solid #333;
+        box-shadow: none;
+    }
+}
+
+/* Animation for highlighted seats */
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(255, 193, 7, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 193, 7, 0);
+    }
+}
+

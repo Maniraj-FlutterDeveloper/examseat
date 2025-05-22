@@ -4,11 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Topic extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     /**
      * The attributes that are mass assignable.
@@ -17,8 +16,8 @@ class Topic extends Model
      */
     protected $fillable = [
         'unit_id',
-        'topic_name',
-        'topic_code',
+        'name',
+        'code',
         'description',
         'order',
         'is_active',
@@ -30,8 +29,8 @@ class Topic extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'order' => 'integer',
         'is_active' => 'boolean',
+        'order' => 'integer',
     ];
 
     /**
@@ -43,6 +42,21 @@ class Topic extends Model
     }
 
     /**
+     * Get the subject through the unit.
+     */
+    public function subject()
+    {
+        return $this->hasOneThrough(
+            Subject::class,
+            Unit::class,
+            'id', // Foreign key on units table...
+            'id', // Foreign key on subjects table...
+            'unit_id', // Local key on topics table...
+            'subject_id' // Local key on units table...
+        );
+    }
+
+    /**
      * Get the questions for the topic.
      */
     public function questions()
@@ -51,10 +65,25 @@ class Topic extends Model
     }
 
     /**
-     * Get the subject through the unit.
+     * Scope a query to only include active topics.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function subject()
+    public function scopeActive($query)
     {
-        return $this->hasOneThrough(Subject::class, Unit::class, 'id', 'id', 'unit_id', 'subject_id');
+        return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope a query to order topics by their order field.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('order');
     }
 }
+
