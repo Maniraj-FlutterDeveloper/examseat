@@ -21,7 +21,7 @@ return new class extends Migration
             $table->timestamps();
             
             // Ensure an invigilator is assigned only once per room and seating plan
-            $table->unique(['seating_plan_id', 'room_id', 'invigilator_id']);
+            $table->unique(['seating_plan_id', 'room_id', 'invigilator_id'], 'invig_assign_plan_room_invig_unique');
         });
     }
 
@@ -33,4 +33,3 @@ return new class extends Migration
         Schema::dropIfExists('invigilator_assignments');
     }
 };
-
