@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Student extends Model
 {
@@ -15,13 +17,17 @@ class Student extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'course_id',
         'roll_number',
         'name',
-        'course_id',
+        'email',
+        'phone',
+        'gender',
         'year',
         'section',
         'has_disability',
         'disability_details',
+        'is_active',
     ];
 
     /**
@@ -30,39 +36,89 @@ class Student extends Model
      * @var array<string, string>
      */
     protected $casts = [
+        'year' => 'integer',
         'has_disability' => 'boolean',
+        'is_active' => 'boolean',
     ];
 
     /**
      * Get the course that owns the student.
      */
-    public function course()
+    public function course(): BelongsTo
     {
         return $this->belongsTo(Course::class);
     }
 
     /**
-     * Get the priorities for the student.
-     */
-    public function priorities()
-    {
-        return $this->hasMany(StudentPriority::class);
-    }
-
-    /**
      * Get the seating assignments for the student.
      */
-    public function seatingAssignments()
+    public function seatingAssignments(): HasMany
     {
         return $this->hasMany(SeatingAssignment::class);
     }
 
     /**
-     * Get the seating overrides for the student.
+     * Scope a query to only include active students.
      */
-    public function seatingOverrides()
+    public function scopeActive($query)
     {
-        return $this->hasMany(SeatingOverride::class);
+        return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope a query to filter students by course.
+     */
+    public function scopeInCourse($query, $courseId)
+    {
+        return $query->where('course_id', $courseId);
+    }
+
+    /**
+     * Scope a query to filter students by year.
+     */
+    public function scopeInYear($query, $year)
+    {
+        return $query->where('year', $year);
+    }
+
+    /**
+     * Scope a query to filter students by section.
+     */
+    public function scopeInSection($query, $section)
+    {
+        return $query->where('section', $section);
+    }
+
+    /**
+     * Scope a query to filter students with disabilities.
+     */
+    public function scopeWithDisability($query)
+    {
+        return $query->where('has_disability', true);
+    }
+
+    /**
+     * Get the full name with roll number.
+     */
+    public function getFullNameWithRollAttribute(): string
+    {
+        return "{$this->name} ({$this->roll_number})";
+    }
+
+    /**
+     * Get the course name.
+     */
+    public function getCourseNameAttribute(): string
+    {
+        return $this->course->name;
+    }
+
+    /**
+     * Get the year and section combined.
+     */
+    public function getYearSectionAttribute(): string
+    {
+        return "Year {$this->year}" . ($this->section ? " - Section {$this->section}" : "");
     }
 }
 

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class SeatingAssignment extends Model
+class InvigilatorAssignment extends Model
 {
     use HasFactory;
 
@@ -18,22 +18,9 @@ class SeatingAssignment extends Model
     protected $fillable = [
         'seating_plan_id',
         'room_id',
-        'student_id',
-        'seat_number',
-        'row_number',
-        'column_number',
+        'invigilator_id',
+        'role',
         'notes',
-    ];
-
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
-    protected $casts = [
-        'seat_number' => 'integer',
-        'row_number' => 'integer',
-        'column_number' => 'integer',
     ];
 
     /**
@@ -53,11 +40,11 @@ class SeatingAssignment extends Model
     }
 
     /**
-     * Get the student that owns the assignment.
+     * Get the invigilator that owns the assignment.
      */
-    public function student(): BelongsTo
+    public function invigilator(): BelongsTo
     {
-        return $this->belongsTo(Student::class);
+        return $this->belongsTo(Invigilator::class);
     }
 
     /**
@@ -77,26 +64,19 @@ class SeatingAssignment extends Model
     }
 
     /**
-     * Get the seat position as a string (e.g., "Row 3, Seat 5" or "A5").
+     * Scope a query to filter assignments by role.
      */
-    public function getSeatPositionAttribute(): string
+    public function scopeWithRole($query, $role)
     {
-        if ($this->row_number && $this->column_number) {
-            // If we have row and column numbers, use a grid-based position
-            $rowLabel = chr(64 + $this->row_number); // Convert to letter (1=A, 2=B, etc.)
-            return "{$rowLabel}{$this->column_number}";
-        }
-        
-        // Otherwise, just use the seat number
-        return "Seat {$this->seat_number}";
+        return $query->where('role', $role);
     }
 
     /**
-     * Get the student name with roll number.
+     * Get the invigilator name.
      */
-    public function getStudentNameWithRollAttribute(): string
+    public function getInvigilatorNameAttribute(): string
     {
-        return $this->student->name . ' (' . $this->student->roll_number . ')';
+        return $this->invigilator->name;
     }
 
     /**
@@ -105,6 +85,24 @@ class SeatingAssignment extends Model
     public function getRoomNameWithBlockAttribute(): string
     {
         return $this->room->block->name . ' - ' . $this->room->name;
+    }
+
+    /**
+     * Get the formatted role.
+     */
+    public function getFormattedRoleAttribute(): string
+    {
+        return ucfirst($this->role);
+    }
+
+    /**
+     * Get the count of students in the assigned room for this seating plan.
+     */
+    public function getStudentsCountAttribute(): int
+    {
+        return SeatingAssignment::where('seating_plan_id', $this->seating_plan_id)
+            ->where('room_id', $this->room_id)
+            ->count();
     }
 }
 
