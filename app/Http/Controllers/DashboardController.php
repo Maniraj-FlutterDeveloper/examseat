@@ -2,14 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Block;
-use App\Models\Room;
-use App\Models\Student;
-use App\Models\Subject;
-use App\Models\Question;
-use App\Models\QuestionPaper;
-use App\Models\SeatingPlan;
 use Illuminate\Http\Request;
+use App\Models\Student;
+use App\Models\Room;
+use App\Models\SeatingPlan;
+use App\Models\QuestionPaper;
 
 class DashboardController extends Controller
 {
@@ -20,26 +17,31 @@ class DashboardController extends Controller
      */
     public function index()
     {
-        $stats = [
-            'blocks' => Block::count(),
-            'rooms' => Room::count(),
-            'students' => Student::count(),
-            'subjects' => Subject::count(),
-            'questions' => Question::count(),
-            'questionPapers' => QuestionPaper::count(),
-            'seatingPlans' => SeatingPlan::count(),
-        ];
-
-        $recentSeatingPlans = SeatingPlan::with(['room', 'student'])
-            ->orderBy('created_at', 'desc')
+        // Get counts for dashboard stats
+        $totalStudents = Student::count();
+        $totalRooms = Room::count();
+        $totalSeatingPlans = SeatingPlan::count();
+        $totalQuestionPapers = QuestionPaper::count();
+        
+        // Get recent seating plans
+        $recentSeatingPlans = SeatingPlan::orderBy('created_at', 'desc')
             ->take(5)
             ->get();
-
+            
+        // Get recent question papers
         $recentQuestionPapers = QuestionPaper::with('subject')
             ->orderBy('created_at', 'desc')
             ->take(5)
             ->get();
-
-        return view('dashboard', compact('stats', 'recentSeatingPlans', 'recentQuestionPapers'));
+        
+        return view('dashboard', compact(
+            'totalStudents',
+            'totalRooms',
+            'totalSeatingPlans',
+            'totalQuestionPapers',
+            'recentSeatingPlans',
+            'recentQuestionPapers'
+        ));
     }
 }
+

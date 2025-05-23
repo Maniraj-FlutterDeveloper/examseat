@@ -9,6 +9,16 @@ use Illuminate\Support\Facades\Auth;
 class LoginController extends Controller
 {
     /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        $this->middleware('guest')->except('logout');
+    }
+
+    /**
      * Show the login form.
      *
      * @return \Illuminate\View\View
@@ -31,10 +41,10 @@ class LoginController extends Controller
             'password' => ['required'],
         ]);
 
-        if (Auth::attempt($credentials)) {
+        if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
 
-            return redirect()->intended('dashboard');
+            return redirect()->intended(route('dashboard'));
         }
 
         return back()->withErrors([
@@ -59,3 +69,4 @@ class LoginController extends Controller
         return redirect('/');
     }
 }
+

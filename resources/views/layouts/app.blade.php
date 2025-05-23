@@ -1,89 +1,44 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-
-    <title>{{ config('app.name', 'Exam Seat Management') }}</title>
-
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-
-    <!-- Bootstrap CSS -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@yield('title', 'Exam Seat Management System')</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Custom CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
-            --primary-color: #0a2463; /* Navy Blue */
-            --secondary-color: #3e92cc;
-            --accent-color: #d8315b;
-            --light-color: #fffaff;
-            --dark-color: #1e1b18;
+            --primary-color: #000080;
+            --primary-dark: #00006b;
+            --secondary-color: #f8f9fa;
         }
         
         body {
-            font-family: 'Roboto', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f8f9fa;
         }
         
-        .navbar {
-            background-color: var(--primary-color);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        
-        .navbar-brand {
-            font-weight: 700;
-            color: white !important;
-        }
-        
-        .nav-link {
-            color: rgba(255, 255, 255, 0.85) !important;
-            transition: all 0.3s;
-        }
-        
-        .nav-link:hover {
-            color: white !important;
-        }
-        
-        .nav-link.active {
-            color: white !important;
-            font-weight: 500;
-        }
-        
         .sidebar {
-            background-color: white;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            height: calc(100vh - 56px);
+            background-color: var(--primary-color);
+            min-height: 100vh;
+            color: white;
             position: fixed;
-            top: 56px;
-            left: 0;
             width: 250px;
+            transition: all 0.3s;
             z-index: 1000;
-            padding-top: 20px;
-            overflow-y: auto;
         }
         
         .sidebar .nav-link {
-            color: var(--dark-color) !important;
+            color: rgba(255, 255, 255, 0.8);
             padding: 10px 20px;
+            margin: 5px 0;
             border-radius: 5px;
-            margin: 2px 10px;
+            transition: all 0.2s;
         }
         
-        .sidebar .nav-link:hover {
-            background-color: rgba(10, 36, 99, 0.1);
-        }
-        
-        .sidebar .nav-link.active {
-            background-color: var(--primary-color);
-            color: white !important;
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.1);
         }
         
         .sidebar .nav-link i {
@@ -92,39 +47,33 @@
             text-align: center;
         }
         
-        .sidebar-heading {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #6c757d;
-            font-weight: 700;
-            padding: 10px 20px;
-            margin-top: 10px;
-        }
-        
-        .content {
+        .main-content {
             margin-left: 250px;
             padding: 20px;
-            min-height: calc(100vh - 56px);
+            transition: all 0.3s;
+        }
+        
+        .navbar {
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .navbar-brand {
+            color: var(--primary-color);
+            font-weight: bold;
         }
         
         .card {
             border: none;
             border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
             margin-bottom: 20px;
-        }
-        
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
         
         .card-header {
             background-color: white;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            font-weight: 500;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+            font-weight: 600;
         }
         
         .btn-primary {
@@ -133,300 +82,208 @@
         }
         
         .btn-primary:hover {
-            background-color: #081d4f;
-            border-color: #081d4f;
+            background-color: var(--primary-dark);
+            border-color: var(--primary-dark);
         }
         
-        .btn-outline-primary {
-            color: var(--primary-color);
-            border-color: var(--primary-color);
+        .sidebar-header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        .btn-outline-primary:hover {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
-        }
-        
-        .page-title {
-            font-weight: 700;
-            color: var(--primary-color);
-            margin-bottom: 20px;
-        }
-        
-        .stats-card {
-            border-left: 4px solid var(--primary-color);
-        }
-        
-        .stats-card .card-body {
-            padding: 15px;
-        }
-        
-        .stats-card .stats-icon {
-            font-size: 2rem;
-            color: var(--primary-color);
-        }
-        
-        .stats-card .stats-number {
+        .sidebar-header h3 {
+            margin: 0;
             font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--dark-color);
         }
         
-        .stats-card .stats-text {
-            font-size: 0.9rem;
-            color: #6c757d;
-        }
-        
-        .table-responsive {
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        
-        .table {
-            margin-bottom: 0;
-        }
-        
-        .table thead th {
-            background-color: var(--primary-color);
-            color: white;
-            font-weight: 500;
+        .dropdown-menu {
             border: none;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
         }
         
-        .table-striped tbody tr:nth-of-type(odd) {
-            background-color: rgba(10, 36, 99, 0.05);
-        }
-        
-        .pagination {
-            margin-top: 20px;
-        }
-        
-        .page-item.active .page-link {
+        .dropdown-item:active {
             background-color: var(--primary-color);
-            border-color: var(--primary-color);
         }
         
-        .page-link {
-            color: var(--primary-color);
+        .nav-category {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 20px 20px 10px;
+            margin-top: 10px;
         }
         
-        .form-control:focus, .form-select:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 0.25rem rgba(10, 36, 99, 0.25);
-        }
-        
-        .alert {
-            border-radius: 10px;
-        }
-        
-        /* Animation for alerts */
-        .fade-in {
-            animation: fadeIn 0.5s;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        /* Responsive adjustments */
         @media (max-width: 768px) {
             .sidebar {
-                width: 100%;
-                height: auto;
-                position: relative;
-                top: 0;
-                padding-top: 10px;
-                display: none;
+                margin-left: -250px;
             }
-            
-            .content {
+            .sidebar.active {
                 margin-left: 0;
             }
-            
-            .sidebar.show {
-                display: block;
+            .main-content {
+                margin-left: 0;
             }
-            
-            .toggle-sidebar {
-                display: block !important;
+            .main-content.active {
+                margin-left: 250px;
             }
-        }
-        
-        .toggle-sidebar {
-            display: none;
         }
     </style>
-
-    @stack('styles')
+    @yield('styles')
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{{ url('/') }}">
-                <i class="fas fa-graduation-cap me-2"></i>
-                {{ config('app.name', 'Exam Seat Management') }}
-            </a>
-            
-            <button class="navbar-toggler toggle-sidebar" type="button">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav ms-auto">
-                    @guest
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
-                        </li>
-                    @else
-                        <li class="nav-item dropdown">
-                            <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                                {{ Auth::user()->name }}
-                            </a>
-
-                            <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                <a class="dropdown-item" href="{{ route('logout') }}"
-                                   onclick="event.preventDefault();
-                                                 document.getElementById('logout-form').submit();">
-                                    {{ __('Logout') }}
-                                </a>
-
-                                <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                                    @csrf
-                                </form>
-                            </div>
-                        </li>
-                    @endguest
-                </ul>
-            </div>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h3>Exam Seat</h3>
         </div>
-    </nav>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link {{ request()->is('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+            </li>
+            
+            <div class="nav-category">Seat Management</div>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->is('blocks*') ? 'active' : '' }}" href="{{ route('blocks.index') }}">
+                    <i class="fas fa-building"></i> Blocks
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->is('rooms*') ? 'active' : '' }}" href="{{ route('rooms.index') }}">
+                    <i class="fas fa-door-open"></i> Rooms
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->is('seating-plans*') ? 'active' : '' }}" href="{{ route('seating-plans.index') }}">
+                    <i class="fas fa-chair"></i> Seating Plans
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->is('invigilators*') ? 'active' : '' }}" href="{{ route('invigilators.index') }}">
+                    <i class="fas fa-user-tie"></i> Invigilators
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->is('room-invigilator-assignments*') ? 'active' : '' }}" href="{{ route('room-invigilator-assignments.index') }}">
+                    <i class="fas fa-tasks"></i> Assignments
+                </a>
+            </li>
+            
+            <div class="nav-category">Academic</div>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->is('courses*') ? 'active' : '' }}" href="{{ route('courses.index') }}">
+                    <i class="fas fa-graduation-cap"></i> Courses
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->is('students*') ? 'active' : '' }}" href="{{ route('students.index') }}">
+                    <i class="fas fa-user-graduate"></i> Students
+                </a>
+            </li>
+            
+            <div class="nav-category">Question Bank</div>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->is('subjects*') ? 'active' : '' }}" href="{{ route('subjects.index') }}">
+                    <i class="fas fa-book"></i> Subjects
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->is('units*') ? 'active' : '' }}" href="{{ route('units.index') }}">
+                    <i class="fas fa-layer-group"></i> Units
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->is('topics*') ? 'active' : '' }}" href="{{ route('topics.index') }}">
+                    <i class="fas fa-list"></i> Topics
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->is('blooms-taxonomy*') ? 'active' : '' }}" href="{{ route('blooms-taxonomy.index') }}">
+                    <i class="fas fa-brain"></i> Bloom's Taxonomy
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->is('questions*') ? 'active' : '' }}" href="{{ route('questions.index') }}">
+                    <i class="fas fa-question-circle"></i> Questions
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->is('blueprints*') ? 'active' : '' }}" href="{{ route('blueprints.index') }}">
+                    <i class="fas fa-drafting-compass"></i> Blueprints
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->is('question-papers*') ? 'active' : '' }}" href="{{ route('question-papers.index') }}">
+                    <i class="fas fa-file-alt"></i> Question Papers
+                </a>
+            </li>
+        </ul>
+    </div>
 
-    <div class="container-fluid">
-        <div class="row">
-            @auth
-                <div class="sidebar">
-                    <div class="sidebar-heading">Seat Plan</div>
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
-                                <i class="fas fa-tachometer-alt"></i> Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('blocks.*') ? 'active' : '' }}" href="{{ route('blocks.index') }}">
-                                <i class="fas fa-building"></i> Blocks
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('rooms.*') ? 'active' : '' }}" href="{{ route('rooms.index') }}">
-                                <i class="fas fa-door-open"></i> Rooms
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('courses.*') ? 'active' : '' }}" href="{{ route('courses.index') }}">
-                                <i class="fas fa-book"></i> Courses
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('students.*') ? 'active' : '' }}" href="{{ route('students.index') }}">
-                                <i class="fas fa-user-graduate"></i> Students
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('invigilators.*') ? 'active' : '' }}" href="{{ route('invigilators.index') }}">
-                                <i class="fas fa-user-tie"></i> Invigilators
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('seating-plans.*') ? 'active' : '' }}" href="{{ route('seating-plans.index') }}">
-                                <i class="fas fa-chair"></i> Seating Plans
-                            </a>
-                        </li>
-                    </ul>
-                    
-                    <div class="sidebar-heading">Question Bank</div>
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('subjects.*') ? 'active' : '' }}" href="{{ route('subjects.index') }}">
-                                <i class="fas fa-book-open"></i> Subjects
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('units.*') ? 'active' : '' }}" href="{{ route('units.index') }}">
-                                <i class="fas fa-layer-group"></i> Units
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('topics.*') ? 'active' : '' }}" href="{{ route('topics.index') }}">
-                                <i class="fas fa-list"></i> Topics
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('blooms-taxonomy.*') ? 'active' : '' }}" href="{{ route('blooms-taxonomy.index') }}">
-                                <i class="fas fa-brain"></i> Bloom's Taxonomy
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('questions.*') ? 'active' : '' }}" href="{{ route('questions.index') }}">
-                                <i class="fas fa-question-circle"></i> Questions
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('blueprints.*') ? 'active' : '' }}" href="{{ route('blueprints.index') }}">
-                                <i class="fas fa-drafting-compass"></i> Blueprints
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('question-papers.*') ? 'active' : '' }}" href="{{ route('question-papers.index') }}">
-                                <i class="fas fa-file-alt"></i> Question Papers
-                            </a>
-                        </li>
-                    </ul>
+    <div class="main-content">
+        <nav class="navbar navbar-expand-lg navbar-light mb-4">
+            <div class="container-fluid">
+                <button class="btn btn-outline-secondary" id="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="ms-auto d-flex align-items-center">
+                    <div class="dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user-circle me-1"></i> {{ Auth::user()->name }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i> Profile</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i> Settings</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form method="POST" action="{{ route('logout') }}">
+                                    @csrf
+                                    <button type="submit" class="dropdown-item">
+                                        <i class="fas fa-sign-out-alt me-2"></i> Logout
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
-            @endauth
+            </div>
+        </nav>
 
-            <main class="@auth content @endauth">
-                @if(session('success'))
-                    <div class="alert alert-success fade-in">
-                        {{ session('success') }}
-                    </div>
-                @endif
+        <div class="container-fluid">
+            @if (session('success'))
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    {{ session('success') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
 
-                @if(session('error'))
-                    <div class="alert alert-danger fade-in">
-                        {{ session('error') }}
-                    </div>
-                @endif
+            @if (session('error'))
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    {{ session('error') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
 
-                @yield('content')
-            </main>
+            @yield('content')
         </div>
     </div>
 
-    <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    
     <script>
-        // Toggle sidebar on mobile
-        document.querySelector('.toggle-sidebar')?.addEventListener('click', function() {
-            document.querySelector('.sidebar').classList.toggle('show');
-        });
-        
-        // Auto-hide alerts after 5 seconds
-        setTimeout(function() {
-            const alerts = document.querySelectorAll('.alert');
-            alerts.forEach(function(alert) {
-                const bsAlert = new bootstrap.Alert(alert);
-                bsAlert.close();
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.querySelector('.main-content');
+            
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('active');
+                mainContent.classList.toggle('active');
             });
-        }, 5000);
+        });
     </script>
-
-    @stack('scripts')
+    @yield('scripts')
 </body>
 </html>
 
