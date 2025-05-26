@@ -214,65 +214,90 @@
 
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <!-- Left Side Of Navbar -->
-                    <ul class="navbar-nav mr-auto">
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ route('home') }}">
-                                <i class="fas fa-tachometer-alt mr-1"></i>Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a id="seatPlanDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                                <i class="fas fa-chair mr-1"></i>Seat Plan
-                            </a>
-                            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="seatPlanDropdown">
-                                <a class="dropdown-item" href="{{ route('seating-plans.index') }}">
-                                    <i class="fas fa-list mr-1"></i>Seating Plans
+                    <ul class="navbar-nav me-auto">
+                        @auth
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('home') }}">Dashboard</a>
+                            </li>
+                            
+                            <!-- Seat Plan Dropdown -->
+                            <li class="nav-item dropdown">
+                                <a id="seatPlanDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                                    Seat Plan
                                 </a>
-                                <a class="dropdown-item" href="{{ route('blocks.index') }}">
-                                    <i class="fas fa-building mr-1"></i>Blocks
+                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="seatPlanDropdown">
+                                    @can('rooms.view')
+                                    <a class="dropdown-item" href="{{ route('rooms.index') }}">Rooms</a>
+                                    @endcan
+                                    @can('blocks.view')
+                                    <a class="dropdown-item" href="{{ route('blocks.index') }}">Blocks</a>
+                                    @endcan
+                                    @can('courses.view')
+                                    <a class="dropdown-item" href="{{ route('courses.index') }}">Courses</a>
+                                    @endcan
+                                    @can('students.view')
+                                    <a class="dropdown-item" href="{{ route('students.index') }}">Students</a>
+                                    @endcan
+                                    @can('invigilators.view')
+                                    <a class="dropdown-item" href="{{ route('invigilators.index') }}">Invigilators</a>
+                                    @endcan
+                                    @can('seating_rules.view')
+                                    <a class="dropdown-item" href="{{ route('seating-rules.index') }}">Seating Rules</a>
+                                    @endcan
+                                    @can('seating_plans.view')
+                                    <a class="dropdown-item" href="{{ route('seating-plans.index') }}">Seating Plans</a>
+                                    @endcan
+                                </div>
+                            </li>
+                            
+                            <!-- Question Bank Dropdown -->
+                            <li class="nav-item dropdown">
+                                <a id="questionBankDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                                    Question Bank
                                 </a>
-                                <a class="dropdown-item" href="{{ route('rooms.index') }}">
-                                    <i class="fas fa-door-open mr-1"></i>Rooms
+                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="questionBankDropdown">
+                                    @can('subjects.view')
+                                    <a class="dropdown-item" href="{{ route('subjects.index') }}">Subjects</a>
+                                    @endcan
+                                    @can('units.view')
+                                    <a class="dropdown-item" href="{{ route('units.index') }}">Units</a>
+                                    @endcan
+                                    @can('topics.view')
+                                    <a class="dropdown-item" href="{{ route('topics.index') }}">Topics</a>
+                                    @endcan
+                                    @can('blooms_taxonomy.view')
+                                    <a class="dropdown-item" href="{{ route('blooms-taxonomy.index') }}">Bloom's Taxonomy</a>
+                                    @endcan
+                                    @can('questions.view')
+                                    <a class="dropdown-item" href="{{ route('questions.index') }}">Questions</a>
+                                    @endcan
+                                    @can('blueprints.view')
+                                    <a class="dropdown-item" href="{{ route('blueprints.index') }}">Blueprints</a>
+                                    @endcan
+                                    @can('question_papers.view')
+                                    <a class="dropdown-item" href="{{ route('question-papers.index') }}">Question Papers</a>
+                                    @endcan
+                                </div>
+                            </li>
+                            
+                            <!-- Admin Dropdown -->
+                            @if(auth()->user()->isAdmin())
+                            <li class="nav-item dropdown">
+                                <a id="adminDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                                    Administration
                                 </a>
-                                <a class="dropdown-item" href="{{ route('courses.index') }}">
-                                    <i class="fas fa-book mr-1"></i>Courses
-                                </a>
-                                <a class="dropdown-item" href="{{ route('students.index') }}">
-                                    <i class="fas fa-user-graduate mr-1"></i>Students
-                                </a>
-                                <a class="dropdown-item" href="{{ route('invigilators.index') }}">
-                                    <i class="fas fa-user-tie mr-1"></i>Invigilators
-                                </a>
-                                <a class="dropdown-item" href="{{ route('seating-rules.index') }}">
-                                    <i class="fas fa-cogs mr-1"></i>Seating Rules
-                                </a>
-                            </div>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a id="questionBankDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                                <i class="fas fa-question-circle mr-1"></i>Question Bank
-                            </a>
-                            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="questionBankDropdown">
-                                <a class="dropdown-item" href="#">
-                                    <i class="fas fa-book-open mr-1"></i>Subjects
-                                </a>
-                                <a class="dropdown-item" href="#">
-                                    <i class="fas fa-layer-group mr-1"></i>Units
-                                </a>
-                                <a class="dropdown-item" href="#">
-                                    <i class="fas fa-bookmark mr-1"></i>Topics
-                                </a>
-                                <a class="dropdown-item" href="#">
-                                    <i class="fas fa-question mr-1"></i>Questions
-                                </a>
-                                <a class="dropdown-item" href="#">
-                                    <i class="fas fa-brain mr-1"></i>Bloom's Taxonomy
-                                </a>
-                                <a class="dropdown-item" href="#">
-                                    <i class="fas fa-file-alt mr-1"></i>Question Papers
-                                </a>
-                            </div>
-                        </li>
+                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="adminDropdown">
+                                    @can('users.view')
+                                    <a class="dropdown-item" href="{{ route('users.index') }}">Users</a>
+                                    @endcan
+                                    @can('roles.view')
+                                    <a class="dropdown-item" href="{{ route('roles.index') }}">Roles & Permissions</a>
+                                    @endcan
+                                    <a class="dropdown-item" href="{{ route('settings.index') }}">System Settings</a>
+                                </div>
+                            </li>
+                            @endif
+                        @endauth
                     </ul>
 
                     <!-- Right Side Of Navbar -->
@@ -359,4 +384,3 @@
     @yield('scripts')
 </body>
 </html>
-

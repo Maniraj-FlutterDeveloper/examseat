@@ -20,6 +20,7 @@ use App\Http\Controllers\QuestionBank\QuestionTypeController;
 use App\Http\Controllers\QuestionBank\QuestionController;
 use App\Http\Controllers\QuestionBank\BlueprintController;
 use App\Http\Controllers\QuestionBank\QuestionPaperController;
+use App\Http\Controllers\RoleController;
 
 /*
 |--------------------------------------------------------------------------
@@ -194,8 +195,18 @@ Route::prefix('api')->name('api.')->group(function () {
     })->name('create-override');
 });
 
+// Role Management Routes
+Route::middleware(['auth', 'permission:roles.view'])->group(function () {
+    Route::get('/roles', [App\Http\Controllers\RoleController::class, 'index'])->name('roles.index');
+    Route::get('/roles/create', [App\Http\Controllers\RoleController::class, 'create'])->name('roles.create')->middleware('permission:roles.create');
+    Route::post('/roles', [App\Http\Controllers\RoleController::class, 'store'])->name('roles.store')->middleware('permission:roles.create');
+    Route::get('/roles/{role}', [App\Http\Controllers\RoleController::class, 'show'])->name('roles.show');
+    Route::get('/roles/{role}/edit', [App\Http\Controllers\RoleController::class, 'edit'])->name('roles.edit')->middleware('permission:roles.edit');
+    Route::put('/roles/{role}', [App\Http\Controllers\RoleController::class, 'update'])->name('roles.update')->middleware('permission:roles.edit');
+    Route::delete('/roles/{role}', [App\Http\Controllers\RoleController::class, 'destroy'])->name('roles.destroy')->middleware('permission:roles.delete');
+});
+
 // Auth routes
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-

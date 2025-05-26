@@ -4,65 +4,45 @@ namespace App\Providers;
 
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
-use App\Models\SeatingPlan;
-use App\Policies\SeatingPlanPolicy;
-use App\Models\SeatingRule;
-use App\Policies\SeatingRulePolicy;
-use App\Models\StudentPriority;
-use App\Policies\StudentPriorityPolicy;
-use App\Models\SeatingOverride;
-use App\Policies\SeatingOverridePolicy;
+use App\Models\User;
+use App\Models\Permission;
 
 class AuthServiceProvider extends ServiceProvider
 {
     /**
-     * The policy mappings for the application.
+     * The model to policy mappings for the application.
      *
      * @var array<class-string, class-string>
      */
     protected $policies = [
-        SeatingPlan::class => SeatingPlanPolicy::class,
-        SeatingRule::class => SeatingRulePolicy::class,
-        StudentPriority::class => StudentPriorityPolicy::class,
-        SeatingOverride::class => SeatingOverridePolicy::class,
+        //
     ];
 
     /**
      * Register any authentication / authorization services.
-     *
-     * @return void
      */
-    public function boot()
+    public function boot(): void
     {
         $this->registerPolicies();
 
-        // Define a super-admin role that can do everything
-        Gate::before(function ($user, $ability) {
-            if ($user->hasRole('super-admin')) {
+        // Implicitly grant "admin" role all permissions
+        Gate::before(function (User $user, $ability) {
+            if ($user->isAdmin()) {
                 return true;
             }
         });
 
-        // Custom gates for seating plan module
-        Gate::define('manage-seating-plans', function ($user) {
-            return $user->hasRole('admin');
-        });
-
-        Gate::define('view-seating-plans', function ($user) {
-            return $user->hasAnyRole(['admin', 'invigilator', 'staff']);
-        });
-
-        Gate::define('manage-seating-rules', function ($user) {
-            return $user->hasRole('admin');
-        });
-
-        Gate::define('manage-student-priorities', function ($user) {
-            return $user->hasAnyRole(['admin', 'staff']);
-        });
-
-        Gate::define('manage-seating-overrides', function ($user) {
-            return $user->hasAnyRole(['admin', 'invigilator']);
-        });
+        // Define gates for each permission
+        try {
+            $permissions = Permission::all();
+            foreach ($permissions as $permission) {
+                Gate::define($permission->name, function (User $user) use ($permission) {
+                    return $user->hasPermission($permission);
+                });
+            }
+        } catch (\Exception $e) {
+            // Handle the case when the permissions table doesn't exist yet (e.g., during migrations)
+            report($e);
+        }
     }
 }
-

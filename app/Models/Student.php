@@ -6,10 +6,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
-class Student extends Model
+class Student extends Authenticatable
 {
-    use HasFactory;
+    use HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -28,6 +30,8 @@ class Student extends Model
         'has_disability',
         'disability_details',
         'is_active',
+        'password',
+        'role_id',
     ];
 
     /**
@@ -39,6 +43,18 @@ class Student extends Model
         'year' => 'integer',
         'has_disability' => 'boolean',
         'is_active' => 'boolean',
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+    ];
+
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var array<int, string>
+     */
+    protected $hidden = [
+        'password',
+        'remember_token',
     ];
 
     /**
@@ -47,6 +63,14 @@ class Student extends Model
     public function course(): BelongsTo
     {
         return $this->belongsTo(Course::class);
+    }
+
+    /**
+     * Get the role that owns the student.
+     */
+    public function role(): BelongsTo
+    {
+        return $this->belongsTo(Role::class);
     }
 
     /**
@@ -120,5 +144,59 @@ class Student extends Model
     {
         return "Year {$this->year}" . ($this->section ? " - Section {$this->section}" : "");
     }
-}
 
+    /**
+     * Determine if the student has the given permission.
+     *
+     * @param string|Permission $permission
+     * @return bool
+     */
+    public function hasPermission($permission): bool
+    {
+        if (!$this->role) {
+            return false;
+        }
+        
+        return $this->role->hasPermission($permission);
+    }
+
+    /**
+     * Determine if the student has all of the given permissions.
+     *
+     * @param array $permissions
+     * @return bool
+     */
+    public function hasAllPermissions(array $permissions): bool
+    {
+        if (!$this->role) {
+            return false;
+        }
+        
+        return $this->role->hasAllPermissions($permissions);
+    }
+
+    /**
+     * Determine if the student has any of the given permissions.
+     *
+     * @param array $permissions
+     * @return bool
+     */
+    public function hasAnyPermissions(array $permissions): bool
+    {
+        if (!$this->role) {
+            return false;
+        }
+        
+        return $this->role->hasAnyPermissions($permissions);
+    }
+
+    /**
+     * Check if the student is active.
+     *
+     * @return bool
+     */
+    public function isActive(): bool
+    {
+        return $this->is_active;
+    }
+}
