@@ -4,11 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Invigilator extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     /**
      * The attributes that are mass assignable.
@@ -17,10 +17,10 @@ class Invigilator extends Model
      */
     protected $fillable = [
         'name',
-        'employee_id',
         'email',
         'phone',
         'department',
+        'designation',
         'is_active',
     ];
 
@@ -34,10 +34,59 @@ class Invigilator extends Model
     ];
 
     /**
-     * Get the room assignments for the invigilator.
+     * Get the invigilator assignments for the invigilator.
      */
-    public function roomAssignments()
+    public function invigilatorAssignments(): HasMany
     {
-        return $this->hasMany(RoomInvigilatorAssignment::class);
+        return $this->hasMany(InvigilatorAssignment::class);
+    }
+
+    /**
+     * Scope a query to only include active invigilators.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope a query to filter invigilators by department.
+     */
+    public function scopeInDepartment($query, $department)
+    {
+        return $query->where('department', $department);
+    }
+
+    /**
+     * Get the full name with designation.
+     */
+    public function getFullNameWithDesignationAttribute(): string
+    {
+        return $this->name . ($this->designation ? " ({$this->designation})" : "");
+    }
+
+    /**
+     * Get the count of assignments for this invigilator.
+     */
+    public function getAssignmentsCountAttribute(): int
+    {
+        return $this->invigilatorAssignments()->count();
+    }
+
+    /**
+     * Get upcoming assignments for this invigilator.
+     */
+    public function getUpcomingAssignments($limit = 5)
+    {
+        return $this->invigilatorAssignments()
+            ->with(['seatingPlan', 'room'])
+            ->whereHas('seatingPlan', function ($query) {
+                $query->where('exam_date', '>=', now()->format('Y-m-d'))
+                      ->whereIn('status', ['draft', 'published']);
+            })
+            ->orderBy('created_at', 'desc')
+            ->limit($limit)
+            ->get();
     }
 }
+
